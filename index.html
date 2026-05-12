@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>调谐质量阻尼器 · TMD 科普交互</title>
+<style>
+:root{
+  --bg-0:#070d1c;
+  --bg-1:#0d1730;
+  --bg-2:#142544;
+  --line:rgba(140,180,230,0.10);
+  --line-2:rgba(140,180,230,0.20);
+  --gold:#ffd76b;
+  --gold-2:#ff9b54;
+  --cyan:#5fe4f0;
+  --cyan-2:#2a8da0;
+  --mint:#4ddca8;
+  --red:#ff6b6b;
+  --text:#eef4ff;
+  --text-dim:#9bb1cf;
+  --text-mute:#5e7494;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;background:#000;color:var(--text);
+  font-family:"PingFang SC","Microsoft YaHei","Inter","Helvetica Neue",sans-serif;
+  overflow:hidden;-webkit-font-smoothing:antialiased;
+}
+
+/* ============ 整体容器与共享背景 ============ */
+.app{
+  position:relative;width:1920px;height:1080px;overflow:hidden;
+  background:
+    radial-gradient(ellipse 1100px 600px at 18% 10%, rgba(95,228,240,0.10), transparent 60%),
+    radial-gradient(ellipse 1000px 700px at 85% 95%, rgba(255,155,84,0.10), transparent 60%),
+    linear-gradient(160deg,var(--bg-0) 0%, var(--bg-1) 50%, var(--bg-0) 100%);
+}
+.bg-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(140,180,230,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140,180,230,0.045) 1px, transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse at center, black 40%, transparent 95%);
+}
+.bg-noise{
+  position:absolute;inset:0;pointer-events:none;opacity:0.5;mix-blend-mode:overlay;
+  background:radial-gradient(circle at 50% 50%, transparent 0, rgba(0,0,0,0.4) 100%);
+}
+.bg-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.bg-particles span{
+  position:absolute;display:block;border-radius:50%;
+  background:radial-gradient(circle, rgba(255,255,255,0.9), transparent 70%);
+  animation:floatUp 18s linear infinite;
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) translateX(0);opacity:0}
+  10%{opacity:0.7}
+  90%{opacity:0.7}
+  100%{transform:translateY(-1100px) translateX(40px);opacity:0}
+}
+
+/* ============ 顶栏 ============ */
+.header{
+  position:absolute;top:0;left:0;right:0;height:96px;z-index:30;
+  display:flex;align-items:center;justify-content:space-between;padding:0 64px;
+  background:linear-gradient(180deg, rgba(0,0,0,0.55), transparent);
+}
+.brand{display:flex;align-items:center;gap:18px}
+.brand-mark{
+  width:58px;height:58px;border-radius:16px;position:relative;
+  background:linear-gradient(135deg,#ffd76b 0%,#ff7a1f 100%);
+  box-shadow:0 10px 30px rgba(255,122,31,0.4),inset 0 0 0 1px rgba(255,255,255,0.3);
+  display:grid;place-items:center;
+}
+.brand-mark svg{width:32px;height:32px}
+.brand-text h1{font-size:24px;letter-spacing:6px;font-weight:700}
+.brand-text p{font-size:11px;letter-spacing:6px;color:var(--text-mute);margin-top:4px}
+
+.meta{display:flex;align-items:center;gap:18px}
+.meta-pill{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 22px;border-radius:30px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--line-2);
+  backdrop-filter:blur(10px);
+}
+.meta-pill .live{
+  width:8px;height:8px;border-radius:50%;background:var(--mint);
+  box-shadow:0 0 10px var(--mint);animation:livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse{50%{transform:scale(1.4);opacity:0.5}}
+.meta-pill b{font-size:13px;letter-spacing:3px}
+.meta-pill i{font-style:normal;color:var(--text-dim);font-size:12px;letter-spacing:2px}
+.meta-time{font-size:11px;color:var(--text-mute);letter-spacing:3px;font-variant-numeric:tabular-nums}
+
+/* ============ 舞台 ============ */
+.stage{position:absolute;top:96px;left:0;right:0;bottom:128px;overflow:hidden}
+.scene{
+  position:absolute;inset:0;padding:24px 64px;
+  opacity:0;pointer-events:none;transform:translateY(24px) scale(0.99);
+  transition:opacity .6s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
+}
+.scene.active{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+
+/* ============ 标题块 ============ */
+.scene-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
+.scene-title-block .eyebrow{
+  display:inline-flex;align-items:center;gap:10px;font-size:11px;letter-spacing:6px;color:var(--gold);
+  padding:4px 12px;border:1px solid rgba(255,215,107,0.4);border-radius:20px;margin-bottom:10px;
+}
+.scene-title-block .eyebrow .num{
+  width:18px;height:18px;border-radius:50%;background:var(--gold);color:#1b1300;
+  display:grid;place-items:center;font-size:10px;font-weight:800;
+}
+.scene-title-block h2{
+  font-size:46px;font-weight:800;letter-spacing:6px;line-height:1;
+  background:linear-gradient(180deg,#fff8e1 0%,#ffd76b 60%,#ff9b54 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.scene-title-block .sub{font-size:13px;color:var(--text-dim);letter-spacing:6px;margin-top:10px}
+.scene-head .crumb{
+  display:flex;align-items:center;gap:14px;color:var(--text-mute);
+  font-size:11px;letter-spacing:3px;
+}
+.scene-head .crumb b{color:var(--text);font-size:12px}
+
+/* ============ 卡片基础 ============ */
+.card{
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));
+  border:1px solid var(--line-2);border-radius:18px;
+  padding:20px 22px;backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.25);
+}
+.card.glow:hover{border-color:rgba(255,215,107,0.5);transform:translateY(-2px);transition:.3s}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.card-head .bar{width:4px;height:18px;border-radius:2px;background:linear-gradient(180deg,var(--gold),var(--gold-2))}
+.card-head h3{font-size:16px;letter-spacing:2px;font-weight:700}
+.card-head .tag{
+  margin-left:auto;font-size:10px;letter-spacing:2px;
+  color:var(--text-mute);border:1px solid var(--line-2);padding:2px 8px;border-radius:10px;
+}
+.card p{font-size:13px;line-height:1.75;color:var(--text-dim)}
+.card p b{color:var(--text)}
+.card .hr{height:1px;background:linear-gradient(90deg,transparent,var(--line-2),transparent);margin:10px 0}
+
+/* ============ 底部导航 ============ */
+.nav{
+  position:absolute;bottom:0;left:0;right:0;height:128px;z-index:30;
+  display:flex;align-items:center;justify-content:center;gap:18px;padding:0 64px;
+  background:linear-gradient(0deg, rgba(0,0,0,0.65), transparent);
+}
+.nav::before{
+  content:"";position:absolute;top:0;left:64px;right:64px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--line-2),transparent);
+}
+.nav-item{
+  position:relative;flex:1;max-width:336px;height:84px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
+  border:1px solid var(--line-2);border-radius:18px;
+  display:flex;align-items:center;gap:14px;padding:0 20px;
+  transition:.3s cubic-bezier(.2,.7,.2,1);overflow:hidden;
+}
+.nav-item .ni-ico{
+  width:48px;height:48px;border-radius:12px;flex-shrink:0;
+  background:rgba(255,255,255,0.05);border:1px solid var(--line-2);
+  display:grid;place-items:center;transition:.3s;
+}
+.nav-item .ni-ico svg{width:24px;height:24px;stroke:var(--text);fill:none;stroke-width:1.6;transition:.3s}
+.nav-item .ni-txt{display:flex;flex-direction:column;gap:2px}
+.nav-item .ni-num{font-size:10px;letter-spacing:3px;color:var(--text-mute)}
+.nav-item .ni-name{font-size:16px;font-weight:600;letter-spacing:2px}
+.nav-item .ni-arrow{margin-left:auto;font-size:18px;color:var(--text-mute);opacity:0;transition:.3s}
+.nav-item:hover{transform:translateY(-4px);border-color:rgba(255,215,107,0.4)}
+.nav-item.active{
+  background:linear-gradient(135deg,rgba(255,215,107,0.18),rgba(255,122,31,0.10));
+  border-color:rgba(255,215,107,0.7);
+  box-shadow:0 18px 40px rgba(255,155,84,0.18), inset 0 0 0 1px rgba(255,215,107,0.2);
+}
+.nav-item.active .ni-ico{background:linear-gradient(135deg,var(--gold),var(--gold-2));border-color:transparent}
+.nav-item.active .ni-ico svg{stroke:#1b1300;stroke-width:2}
+.nav-item.active .ni-arrow{opacity:1;color:var(--gold)}
+.nav-item.active::after{
+  content:"";position:absolute;left:14px;right:14px;top:-1px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-2));
+  box-shadow:0 0 12px var(--gold);
+}
+
+/* ===================== Scene 1 ===================== */
+.s1-grid{display:grid;grid-template-columns:1fr;height:100%;gap:18px}
+.timeline-wrap{position:relative;height:520px;margin-top:10px}
+.timeline-axis{
+  position:absolute;left:30px;right:30px;top:260px;height:2px;
+  background:linear-gradient(90deg,var(--cyan-2),var(--gold) 60%, var(--gold-2));
+}
+.timeline-axis::before,.timeline-axis::after{
+  content:"";position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;
+}
+.timeline-axis::before{left:-6px;background:var(--cyan)}
+.timeline-axis::after{right:-6px;background:var(--gold-2);box-shadow:0 0 12px var(--gold-2)}
+.tl-tick{position:absolute;top:-8px;width:2px;height:18px;background:rgba(140,180,230,0.4)}
+
+.tl-node{
+  position:absolute;width:300px;display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;transition:.3s;
+}
+.tl-node .year{
+  font-family:"Inter","Helvetica Neue",sans-serif;
+  font-size:24px;font-weight:800;letter-spacing:2px;
+  background:linear-gradient(180deg,#ffd76b,#ff9b54);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:8px;
+}
+.tl-node .ring{
+  width:96px;height:96px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 35% 35%, #2d4670 0%, #0d1730 80%);
+  border:2px solid rgba(255,215,107,0.6);
+  display:grid;place-items:center;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4), inset 0 0 0 4px rgba(0,0,0,0.4);
+  transition:.3s;
+}
+.tl-node .ring::before{
+  content:"";position:absolute;inset:-8px;border-radius:50%;
+  border:1px dashed rgba(255,215,107,0.3);
+  animation:ringSpin 18s linear infinite;
+}
+@keyframes ringSpin{to{transform:rotate(360deg)}}
+.tl-node .ring svg{width:42px;height:42px;stroke:var(--gold);fill:none;stroke-width:1.5}
+.tl-node:hover .ring{transform:scale(1.06);border-color:var(--gold);box-shadow:0 10px 30px rgba(255,215,107,0.5)}
+.tl-node:hover .ring::before{animation-duration:6s}
+.tl-node .name{font-size:15px;font-weight:700;letter-spacing:1px;text-align:center;margin-top:14px}
+.tl-node .desc{font-size:11.5px;color:var(--text-dim);line-height:1.65;text-align:center;margin-top:8px;padding:0 16px}
+.tl-node .badge{
+  font-size:10px;letter-spacing:2px;color:var(--gold);
+  border:1px solid rgba(255,215,107,0.4);padding:2px 8px;border-radius:10px;margin-top:6px;
+}
+
+.tl-node:nth-child(2n){flex-direction:column-reverse}
+.tl-node:nth-child(2n) .desc{margin-top:0;margin-bottom:8px}
+.tl-node:nth-child(2n) .name{margin-top:0;margin-bottom:8px}
+.tl-node:nth-child(2n) .badge{margin-top:0;margin-bottom:8px}
+
+.connector{
+  position:absolute;top:228px;width:2px;height:32px;
+  background:linear-gradient(180deg,transparent,var(--gold));
+  left:50%;transform:translateX(-50%);
+}
+.tl-node:nth-child(2n) .connector{top:auto;bottom:228px;
+  background:linear-gradient(0deg,transparent,var(--gold));
+}
+
+.s1-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:auto}
+
+/* ===================== Scene 2 ===================== */
+.s2-grid{display:grid;grid-template-columns:1.05fr 1.1fr 1fr;gap:20px;height:100%}
+.col{display:flex;flex-direction:column;gap:16px}
+
+.bld-illu{
+  position:relative;height:320px;border-radius:14px;overflow:hidden;
+  background:
+    radial-gradient(ellipse at 80% 30%, rgba(95,228,240,0.10), transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,0.03),transparent);
+  border:1px solid var(--line-2);
+}
+.bld-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(95,228,240,0.07) 1px,transparent 1px);
+  background-size:100% 24px;
+}
+.bld-svg{position:absolute;left:0;right:0;bottom:0;top:0;width:100%;height:100%}
+.wind-label{
+  position:absolute;left:14px;top:14px;font-size:10px;letter-spacing:3px;color:var(--cyan);
+  border:1px solid rgba(95,228,240,0.4);padding:3px 8px;border-radius:10px;
+}
+
+.eq-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 12px}
+.eq-mass{
+  display:grid;place-items:center;border-radius:8px;font-size:12px;font-weight:800;letter-spacing:1px;
+  text-align:center;line-height:1.2;position:relative;
+}
+.eq-m1{width:80px;height:96px;background:linear-gradient(180deg,#3a567f,#1f3458);color:#fff;border:1px solid rgba(255,255,255,0.2)}
+.eq-m2{width:70px;height:70px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#1b1300;box-shadow:0 0 24px rgba(255,155,84,0.4)}
+.eq-mass small{font-size:10px;display:block;color:rgba(255,255,255,0.7);margin-top:2px}
+.eq-m2 small{color:rgba(27,19,0,0.7)}
+.eq-spring{
+  width:60px;height:18px;position:relative;
+}
+.eq-spring svg{width:100%;height:100%}
+.eq-damper{
+  width:56px;height:18px;border:2px solid var(--cyan);border-radius:3px;
+  position:relative;background:linear-gradient(90deg,var(--cyan) 55%,transparent 55%);
+}
+.eq-damper::after{
+  content:"";position:absolute;left:-8px;top:50%;width:14px;height:2px;background:var(--cyan);transform:translateY(-50%);
+}
+.eq-label{font-size:10px;color:var(--text-mute);text-align:center;margin-top:6px;letter-spacing:1px}
+
+.formula{
+  font-family:"Cambria Math","Times New Roman",serif;
+  font-size:26px;text-align:center;color:var(--gold);
+  padding:14px;background:rgba(255,215,107,0.06);border-radius:12px;
+  border:1px dashed rgba(255,215,107,0.35);
+  letter-spacing:1px;
+}
+.formula small{font-size:12px;color:var(--text-dim);display:block;margin-top:6px;font-family:inherit;letter-spacing:2px}
+
+.steps{list-style:none;padding:0}
+.steps li{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.steps li:last-child{border-bottom:none}
+.steps .n{
+  width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-2));
+  color:#1b1300;font-weight:800;display:grid;place-items:center;font-size:12px;flex-shrink:0;
+}
+.steps .b{font-size:13px;line-height:1.65;color:var(--text-dim)}
+.steps .b b{color:var(--text)}
+
+.scope{height:160px;padding:12px;position:relative}
+.scope svg{width:100%;height:100%;display:block}
+.scope-legend{position:absolute;right:14px;top:14px;display:flex;gap:14px;font-size:10px;letter-spacing:2px}
+.scope-legend .dot{display:inline-block;width:8px;height:2px;margin-right:6px;vertical-align:middle}
+
+/* ===================== Scene 3 ===================== */
+.s3-grid{display:grid;grid-template-columns:1.05fr 1.5fr 1.05fr;gap:20px;height:100%}
+.tower-stage{
+  position:relative;height:100%;border-radius:18px;border:1px solid var(--line-2);overflow:hidden;
+  background:
+    radial-gradient(ellipse 600px 600px at 50% 60%, rgba(95,228,240,0.10), transparent 70%),
+    linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
+}
+.tower-stage svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:92%;height:96%}
+
+.spec-pin{
+  position:absolute;
+  background:rgba(7,13,28,0.85);border:1px solid rgba(255,215,107,0.5);
+  padding:8px 12px;border-radius:10px;font-size:11px;color:var(--gold);
+  letter-spacing:1.5px;backdrop-filter:blur(8px);
+  box-shadow:0 6px 18px rgba(0,0,0,0.4);
+}
+.spec-pin b{display:block;font-size:13px;color:#fff;letter-spacing:1px;margin-bottom:2px}
+.spec-pin::before{
+  content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);
+  box-shadow:0 0 10px var(--gold);
+}
+.spec-pin.p1{top:10%;left:6%}.spec-pin.p1::before{right:-18px;top:50%;transform:translateY(-50%)}
+.spec-pin.p2{top:34%;right:6%}.spec-pin.p2::before{left:-18px;top:50%;transform:translateY(-50%)}
+.spec-pin.p3{bottom:34%;left:6%}.spec-pin.p3::before{right:-18px;top:50%;transform:translateY(-50%)}
+.spec-pin.p4{bottom:8%;right:6%}.spec-pin.p4::before{left:-18px;top:50%;transform:translateY(-50%)}
+
+.stat{
+  display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(95,228,240,0.10),rgba(95,228,240,0.02));
+  border:1px solid rgba(95,228,240,0.25);
+  position:relative;overflow:hidden;
+}
+.stat::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--mint));
+}
+.stat .n{
+  font-family:"Inter","Helvetica Neue",sans-serif;
+  font-size:30px;font-weight:800;line-height:1;min-width:90px;
+  background:linear-gradient(180deg,#a4f0ff,var(--cyan) 60%,var(--cyan-2));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.stat .u{font-size:11px;color:var(--text-mute);letter-spacing:2px;display:block;margin-top:4px}
+.stat .info b{font-size:13px;display:block;letter-spacing:1px}
+.stat .info span{font-size:11px;color:var(--text-dim);letter-spacing:1px}
+
+.eddy{
+  position:relative;height:140px;border-radius:12px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.2));
+  border:1px solid var(--line-2);
+}
+.eddy-plate{
+  position:absolute;left:8%;right:8%;top:60%;height:16px;
+  background:linear-gradient(180deg,#d39c4f 0%,#8a5a20 70%,#5b3a10 100%);
+  border-radius:3px;box-shadow:0 4px 14px rgba(0,0,0,0.5);
+}
+.eddy-mag{
+  position:absolute;top:30%;left:50%;width:54px;height:36px;border-radius:6px;
+  background:linear-gradient(180deg,#ff6b6b 50%,#5fe4f0 50%);
+  border:2px solid #fff;transform:translateX(-50%);
+  animation:magMove 2.6s ease-in-out infinite;
+  box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+@keyframes magMove{0%,100%{transform:translateX(-160%)}50%{transform:translateX(60%)}}
+.eddy-curl{
+  position:absolute;top:62%;width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--gold);opacity:0;
+}
+.eddy-curl.c1{left:36%;animation:curlA 2.6s ease-in-out infinite}
+.eddy-curl.c2{left:58%;animation:curlA 2.6s ease-in-out infinite .4s}
+@keyframes curlA{0%,100%{opacity:0;transform:scale(0.4)}50%{opacity:1;transform:scale(1.6)}}
+.eddy-arr{
+  position:absolute;left:10%;bottom:8px;font-size:10px;letter-spacing:2px;color:var(--gold);
+}
+
+/* ===================== Scene 4 ===================== */
+.s4-grid{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:20px;height:100%}
+.materials{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mat{
+  background:rgba(255,255,255,0.03);border:1px solid var(--line-2);
+  border-radius:12px;padding:12px 10px;text-align:center;
+}
+.mat svg{width:32px;height:32px;stroke:var(--gold);fill:none;stroke-width:1.4;margin-bottom:4px}
+.mat b{font-size:12px;display:block;margin-top:2px}
+.mat span{font-size:10px;color:var(--text-mute);letter-spacing:1px}
+
+.exp-stage{
+  position:relative;height:100%;border-radius:18px;overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,0.03),transparent);
+  border:1px solid var(--line-2);
+}
+.exp-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(140,180,230,0.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(140,180,230,0.05) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+.exp-stage svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90%;height:96%}
+.exp-note{
+  position:absolute;background:rgba(7,13,28,0.85);
+  border:1px solid rgba(255,215,107,0.4);padding:6px 10px;border-radius:8px;
+  font-size:11px;color:var(--gold);letter-spacing:1.5px;backdrop-filter:blur(6px);
+}
+.exp-note b{display:block;color:#fff;font-size:12px}
+.exp-note.n1{top:6%;left:6%}
+.exp-note.n2{top:36%;right:6%}
+.exp-note.n3{bottom:24%;left:6%}
+
+.tip{
+  background:linear-gradient(135deg,rgba(255,215,107,0.14),rgba(255,122,31,0.06));
+  border:1px dashed rgba(255,215,107,0.5);border-radius:14px;padding:14px 16px;
+}
+.tip b{display:block;color:var(--gold);font-size:13px;margin-bottom:6px;letter-spacing:1px}
+.tip p{font-size:12px;line-height:1.7;color:var(--text)}
+
+/* ===================== Scene 5 ===================== */
+.s5-bg{
+  position:absolute;inset:0;z-index:-1;
+  background:
+    radial-gradient(circle at 80% 22%, rgba(255,200,150,0.7) 0%, rgba(255,200,150,0) 4%),
+    radial-gradient(circle at 80% 22%, rgba(255,155,84,0.4) 0%, rgba(255,155,84,0) 9%),
+    radial-gradient(ellipse 900px 600px at 70% 35%, rgba(255,107,71,0.18), transparent 65%),
+    linear-gradient(180deg,#1a0a05 0%,#3a1810 55%,#7a3a1a 100%);
+}
+.s5-stars{position:absolute;inset:0;pointer-events:none;z-index:-1}
+.s5-stars span{
+  position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;
+  animation:twinkle 4s ease-in-out infinite;
+}
+@keyframes twinkle{0%,100%{opacity:0.2}50%{opacity:1}}
+
+.s5-grid{display:grid;grid-template-columns:1.05fr 1.4fr 1.05fr;gap:20px;height:100%;position:relative}
+
+.mars-stage{
+  position:relative;height:100%;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,155,84,0.3);
+  background:
+    radial-gradient(ellipse 700px 500px at 50% 60%, rgba(255,107,71,0.25), transparent 70%);
+}
+.mars-stage::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:35%;
+  background:linear-gradient(180deg,transparent,#3a1810 70%, #1a0a05);
+}
+.dust{position:absolute;inset:0;overflow:hidden}
+.dust span{
+  position:absolute;width:4px;height:1px;background:rgba(255,200,150,0.6);
+  border-radius:50%;animation:dustSlide linear infinite;
+}
+@keyframes dustSlide{from{transform:translateX(-50px)}to{transform:translateX(800px)}}
+
+.mars-tower-wrap{position:absolute;left:50%;bottom:24%;transform:translateX(-50%);width:120px;height:340px;z-index:2}
+.mars-tower-wrap svg{width:100%;height:100%}
+
+.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vs{
+  background:rgba(255,255,255,0.03);border:1px solid var(--line-2);
+  border-radius:12px;padding:12px;
+}
+.vs.earth{border-color:rgba(95,228,240,0.4)}
+.vs.mars{border-color:rgba(255,107,71,0.5)}
+.vs h4{font-size:12px;margin-bottom:8px;letter-spacing:2px}
+.vs ul{list-style:none;font-size:11px;color:var(--text-dim);line-height:1.8}
+.vs li::before{content:"·";margin-right:6px;color:var(--gold)}
+
+.feat{
+  display:flex;gap:12px;padding:14px 16px;border-radius:14px;
+  background:linear-gradient(135deg,rgba(255,215,107,0.08),rgba(255,107,71,0.04));
+  border:1px solid rgba(255,155,84,0.25);
+}
+.feat .fi{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold),var(--gold-2));
+  display:grid;place-items:center;
+  box-shadow:0 6px 16px rgba(255,122,31,0.3);
+}
+.feat .fi svg{width:24px;height:24px;stroke:#1b1300;fill:none;stroke-width:1.8}
+.feat .fb b{font-size:13px;display:block;margin-bottom:4px;color:var(--gold);letter-spacing:1px}
+.feat .fb span{font-size:11.5px;color:var(--text-dim);line-height:1.7}
+
+/* ============ 共用元素 ============ */
+.label-corner{position:absolute;right:18px;top:18px;font-size:10px;letter-spacing:3px;color:var(--text-mute)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bg-grid"></div>
+  <div class="bg-noise"></div>
+  <div class="bg-particles" id="particles"></div>
+
+  <!-- ======= Header ======= -->
+  <div class="header">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 32 32" fill="none" stroke="#1b1300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 4 L16 12"/>
+          <circle cx="16" cy="20" r="5"/>
+          <path d="M16 25 L16 28 M10 28 L22 28"/>
+          <path d="M10 12 L22 12"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>调谐质量阻尼器</h1>
+        <p>TUNED · MASS · DAMPER · INTERACTIVE</p>
+      </div>
+    </div>
+    <div class="meta">
+      <div class="meta-pill">
+        <span class="live"></span>
+        <b id="chapNum">CHAPTER 01</b>
+        <i id="chapName">历史起源</i>
+      </div>
+      <div class="meta-time" id="metaTime">— · — · —</div>
+    </div>
+  </div>
+
+  <!-- ======= Stage ======= -->
+  <div class="stage">
+
+    <!-- ===== Scene 1: 历史起源 ===== -->
+    <div class="scene active" data-scene="1">
+      <div class="scene-head">
+        <div class="scene-title-block">
+          <span class="eyebrow"><span class="num">1</span>HISTORICAL ORIGINS · 1909 → 未来</span>
+          <h2>重量的巧妙运用</h2>
+          <div class="sub">从船舶减摇器 · 到千米摩天楼 · 一段百年发明史</div>
+        </div>
+        <div class="crumb"><span>SECTION</span><b>01 / 05</b><span>FRAHM → MARS</span></div>
+      </div>
+
+      <div class="timeline-wrap">
+        <div class="timeline-axis">
+          <div class="tl-tick" style="left:8%"></div>
+          <div class="tl-tick" style="left:25%"></div>
+          <div class="tl-tick" style="left:42%"></div>
+          <div class="tl-tick" style="left:59%"></div>
+          <div class="tl-tick" style="left:76%"></div>
+          <div class="tl-tick" style="left:93%"></div>
+        </div>
+
+        <div class="tl-node" style="left:0;top:0">
+          <div class="badge">PATENT</div>
+          <div class="year">1909</div>
+          <div class="connector"></div>
+          <div class="ring">
+            <svg viewBox="0 0 32 32"><path d="M4 22 Q16 14 28 22"/><path d="M8 22 L8 28 L24 28 L24 22"/><circle cx="14" cy="12" r="2"/><circle cx="20" cy="10" r="2"/></svg>
+          </div>
+          <div class="name">Frahm 船用减摇器</div>
+          <div class="desc">德国工程师 Hermann Frahm 取得专利，用调谐质量对抗海浪。数学正确，却"沉睡"了 60 年。</div>
+        </div>
+
+        <div class="tl-node" style="left:280px;top:0">
+          <div class="badge">RETROFIT</div>
+          <div class="year">1976</div>
+          <div class="connector"></div>
+          <div class="ring">
+            <svg viewBox="0 0 32 32"><rect x="10" y="4" width="12" height="26" rx="1"/><path d="M12 8 L20 8 M12 12 L20 12 M12 16 L20 16 M12 20 L20 20 M12 24 L20 24"/></svg>
+          </div>
+          <div class="name">波士顿汉考克大厦</div>
+          <div class="desc">改造方案：58 层加装两个 300 吨铅钢箱，浮于润滑钢板上抑制风致振动。</div>
+        </div>
+
+        <div class="tl-node" style="left:560px;top:0">
+          <div class="badge">FIRST · DESIGN</div>
+          <div class="year">1977</div>
+          <div class="connector"></div>
+          <div class="ring">
+            <svg viewBox="0 0 32 32"><path d="M16 4 L6 16 L6 30 L26 30 L26 16 Z"/><rect x="13" y="20" width="6" height="10"/><path d="M10 18 L22 18"/></svg>
+          </div>
+          <div class="name">纽约花旗银行中心</div>
+          <div class="desc">首座从设计之初就配 TMD 的摩天楼——400 吨混凝土块漂浮在油膜上。</div>
+        </div>
+
+        <div class="tl-node" style="left:840px;top:0">
+          <div class="badge">ICONIC</div>
+          <div class="year">2004</div>
+          <div class="connector"></div>
+          <div class="ring">
+            <svg viewBox="0 0 32 32"><path d="M16 2 L10 8 L10 30 L22 30 L22 8 Z"/><circle cx="16" cy="20" r="4"/><path d="M14 8 L18 8"/></svg>
+          </div>
+          <div class="name">台北 101</div>
+          <div class="desc">660 吨金色钢球公开展示，台风地震时人们站在它脚下围观，成为城市的"可见巨人"。</div>
+        </div>
+
+        <div class="tl-node" style="left:1120px;top:0">
+          <div class="badge">EDDY · CURRENT</div>
+          <div class="year">2015</div>
+          <div class="connector"></div>
+          <div class="ring">
+            <svg viewBox="0 0 32 32"><path d="M16 2 C10 10 10 22 16 30 C22 22 22 10 16 2 Z"/><circle cx="16" cy="16" r="3"/></svg>
+          </div>
+          <div class="name">上海中心 · 慧眼</div>
+          <div class="desc">632 米第二高楼。约 1000 吨阻尼器采用电磁涡流，免维护、零电力、寂静运行。</div>
+        </div>
+
+        <div class="tl-node" style="left:1400px;top:0">
+          <div class="badge">FUTURE · MARS</div>
+          <div class="year">未来</div>
+          <div class="connector"></div>
+          <div class="ring">
+            <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/><path d="M2 16 L6 16 M26 16 L30 16 M16 2 L16 6 M16 26 L16 30"/><circle cx="16" cy="16" r="3" fill="#ffd76b" stroke="none"/></svg>
+          </div>
+          <div class="name">异星之塔</div>
+          <div class="desc">火星殖民地。多用途质量块同时承担水库、辐射屏蔽与热惯性，电磁涡流抗火震尘暴。</div>
+        </div>
+      </div>
+
+      <div class="s1-cards">
+        <div class="card glow">
+          <div class="card-head"><span class="bar"></span><h3>问题：风涡脱落</h3><span class="tag">CHALLENGE</span></div>
+          <p>高层建筑后方周期性脱落的<b>卡门涡街</b>，会以接近建筑自振频率的节奏推搡它，造成头晕、玻璃震碎、设备掉落——共振是高层最大的隐形敌人。</p>
+        </div>
+        <div class="card glow">
+          <div class="card-head"><span class="bar"></span><h3>液压阻尼的局限</h3><span class="tag">LIMITATION</span></div>
+          <p>维护成本高、密封件老化、油液泄漏与化学变质。在数十年的服役周期里，这些"湿"装置会成为持续的烦恼与停机风险。</p>
+        </div>
+        <div class="card glow">
+          <div class="card-head"><span class="bar"></span><h3>下一个飞跃</h3><span class="tag">SHANGHAI · MARS</span></div>
+          <p>把"湿"换成"干"——只用<b>钕铁硼磁铁、铜板、质量块</b>。无液体、无电力、无接触，让阻尼器与建筑、甚至与殖民地同寿。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Scene 2: 原理分析 ===== -->
+    <div class="scene" data-scene="2">
+      <div class="scene-head">
+        <div class="scene-title-block">
+          <span class="eyebrow"><span class="num">2</span>PRINCIPLE · 反节拍 · 共振 · 耗散</span>
+          <h2>原理分析</h2>
+          <div class="sub">两个质量 · 一根弹簧 · 一份"反向节拍"</div>
+        </div>
+        <div class="crumb"><span>SECTION</span><b>02 / 05</b><span>m₁ – k₂ – c₂ – m₂</span></div>
+      </div>
+
+      <div class="s2-grid" style="height:calc(100% - 110px)">
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>风涡为什么晃楼？</h3></div>
+            <p>风绕过建筑两侧时交替脱落涡流，对结构施加周期性侧向力。当其频率接近建筑的自振频率 <b>f₁</b>，振幅会被持续放大——共振。</p>
+          </div>
+          <div class="bld-illu">
+            <div class="bld-grid"></div>
+            <div class="wind-label">VORTEX · 卡门涡街</div>
+            <svg class="bld-svg" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="bldG" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#3a567f"/>
+                  <stop offset="1" stop-color="#1f3458"/>
+                </linearGradient>
+              </defs>
+              <!-- building -->
+              <rect x="170" y="40" width="80" height="240" fill="url(#bldG)" stroke="#fff" stroke-opacity="0.25" rx="3"/>
+              <g stroke="rgba(95,228,240,0.5)" stroke-width="0.6">
+                <line x1="170" y1="60" x2="250" y2="60"/>
+                <line x1="170" y1="80" x2="250" y2="80"/>
+                <line x1="170" y1="100" x2="250" y2="100"/>
+                <line x1="170" y1="120" x2="250" y2="120"/>
+                <line x1="170" y1="140" x2="250" y2="140"/>
+                <line x1="170" y1="160" x2="250" y2="160"/>
+                <line x1="170" y1="180" x2="250" y2="180"/>
+                <line x1="170" y1="200" x2="250" y2="200"/>
+                <line x1="170" y1="220" x2="250" y2="220"/>
+                <line x1="170" y1="240" x2="250" y2="240"/>
+              </g>
+              <!-- TMD ball -->
+              <g style="transform-origin:210px 60px;animation:swing 3s ease-in-out infinite">
+                <line x1="210" y1="60" x2="210" y2="140" stroke="rgba(255,255,255,0.5)"/>
+                <circle cx="210" cy="146" r="14" fill="url(#ballG2)"/>
+              </g>
+              <defs>
+                <radialGradient id="ballG2" cx="0.3" cy="0.3"><stop offset="0" stop-color="#ffd76b"/><stop offset="1" stop-color="#a76a18"/></radialGradient>
+              </defs>
+              <!-- wind arrows -->
+              <g stroke="#5fe4f0" stroke-width="1.4" fill="none" opacity="0.85">
+                <path d="M30 90 Q60 90 80 100 Q60 110 80 120 Q60 130 80 140 L100 140"/>
+                <path d="M30 160 Q60 160 80 170 Q60 180 80 190 Q60 200 80 210 L100 210"/>
+                <polygon points="100,138 108,140 100,144" fill="#5fe4f0" stroke="none"/>
+                <polygon points="100,208 108,210 100,214" fill="#5fe4f0" stroke="none"/>
+              </g>
+              <!-- vortex eddies behind -->
+              <g stroke="#5fe4f0" stroke-width="1.2" fill="none" opacity="0.5">
+                <circle cx="290" cy="120" r="14"/>
+                <circle cx="310" cy="170" r="10"/>
+                <circle cx="290" cy="220" r="14"/>
+              </g>
+            </svg>
+            <style>@keyframes swing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}</style>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>核心模型</h3><span class="tag">2-DOF</span></div>
+            <p>在主结构（质量 <b>m₁</b>，弹簧 <b>k₁</b>）顶部附加一个小质量 <b>m₂</b> 与弹簧 <b>k₂</b>、阻尼 <b>c₂</b>。当辅助质量被调谐至与主结构相同频率，它便会"反节拍"地摇摆——你向左，它向右。</p>
+            <div class="hr"></div>
+            <div class="eq-row">
+              <div>
+                <div class="eq-mass eq-m1">m₁<small>BUILDING</small></div>
+                <div class="eq-label">主结构</div>
+              </div>
+              <div>
+                <div class="eq-spring">
+                  <svg viewBox="0 0 60 18" preserveAspectRatio="none">
+                    <polyline points="0,9 6,3 12,15 18,3 24,15 30,3 36,15 42,3 48,15 54,3 60,9" stroke="#5fe4f0" stroke-width="1.6" fill="none"/>
+                  </svg>
+                </div>
+                <div class="eq-label">k₂ 弹簧</div>
+              </div>
+              <div>
+                <div class="eq-damper"></div>
+                <div class="eq-label">c₂ 阻尼</div>
+              </div>
+              <div>
+                <div class="eq-mass eq-m2">m₂<small>TMD</small></div>
+                <div class="eq-label">阻尼器</div>
+              </div>
+            </div>
+          </div>
+          <div class="formula">
+            f₂ = (1 / 2π) · √( k₂ / m₂ )
+            <small>调谐条件 · f₂ ≈ f₁ · 把振动能量"吸"进副质量</small>
+          </div>
+          <div class="card scope">
+            <div class="card-head"><span class="bar"></span><h3>加速度对比</h3><span class="tag">RESPONSE</span></div>
+            <div class="scope-legend">
+              <span style="color:#ff6b6b"><span class="dot" style="background:#ff6b6b"></span>无 TMD</span>
+              <span style="color:#4ddca8"><span class="dot" style="background:#4ddca8"></span>有 TMD</span>
+            </div>
+            <svg viewBox="0 0 800 100" preserveAspectRatio="none" style="margin-top:18px">
+              <g stroke="rgba(140,180,230,0.10)" stroke-width="0.5">
+                <line x1="0" y1="50" x2="800" y2="50"/>
+                <line x1="0" y1="20" x2="800" y2="20" stroke-dasharray="2,3"/>
+                <line x1="0" y1="80" x2="800" y2="80" stroke-dasharray="2,3"/>
+              </g>
+              <path id="waveA" d="M0,50 Q20,5 40,50 T80,50 T120,50 T160,50 T200,50 T240,50 T280,50 T320,50 T360,50 T400,50 T440,50 T480,50 T520,50 T560,50 T600,50 T640,50 T680,50 T720,50 T760,50 T800,50"
+                stroke="#ff6b6b" stroke-width="1.6" fill="none"/>
+              <path id="waveB" d="M0,50 Q20,15 40,50 Q60,55 80,50 Q100,40 120,50 Q140,53 160,50 Q200,48 240,50 L800,50"
+                stroke="#4ddca8" stroke-width="1.6" fill="none"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>能量去哪了？</h3><span class="tag">FLOW</span></div>
+            <ul class="steps">
+              <li><div class="n">1</div><div class="b"><b>转移：</b>主结构动能转移给副质量块。</div></li>
+              <li><div class="n">2</div><div class="b"><b>错位：</b>副质量以反相位摆动，抵消激励。</div></li>
+              <li><div class="n">3</div><div class="b"><b>耗散：</b>阻尼器把动能转化为热能散去。</div></li>
+              <li><div class="n">4</div><div class="b"><b>静止：</b>建筑回到几乎察觉不到的微动。</div></li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>调谐质量比</h3><span class="tag">μ ≈ 1–5%</span></div>
+            <p>典型 TMD 的质量约为主结构的 <b>1%–5%</b>，已足以将顶层加速度减半。质量比越大，吸能能力越强，但占用空间也越大。</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>失谐的后果</h3><span class="tag">DETUNING</span></div>
+            <p>若 f₂ 偏离 f₁ 太多，副质量不仅<b>无法减振</b>，反而会在特定频率上<b>放大振动</b>。这就是为什么"调谐"是一切的关键。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Scene 3: 上海中心 慧眼 ===== -->
+    <div class="scene" data-scene="3">
+      <div class="scene-head">
+        <div class="scene-title-block">
+          <span class="eyebrow"><span class="num">3</span>SHANGHAI TOWER · 上海中心 632m</span>
+          <h2>上海中心 · 慧眼</h2>
+          <div class="sub">125 层之上 · 一颗千吨的金属心脏 · 电磁涡流式阻尼</div>
+        </div>
+        <div class="crumb"><span>SECTION</span><b>03 / 05</b><span>EYE OF SHANGHAI</span></div>
+      </div>
+
+      <div class="s3-grid" style="height:calc(100% - 110px)">
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>"上海慧眼"是什么？</h3></div>
+            <p>上海中心大厦在 125 层悬挂着世界最大的<b>电磁涡流式</b>调谐质量阻尼器，由 12 根缆绳吊起约 1000 吨钢摆，命名"上海慧眼"。它既是工程装置，也是公共艺术品。</p>
+          </div>
+          <div class="stat">
+            <div><div class="n">632</div><div class="u">METER · 米</div></div>
+            <div class="info"><b>塔高</b><span>世界第二高建筑 · 128 层</span></div>
+          </div>
+          <div class="stat">
+            <div><div class="n">~1000</div><div class="u">TON · 吨</div></div>
+            <div class="info"><b>阻尼器质量</b><span>钢摆 + 钕铁硼永磁阵列</span></div>
+          </div>
+          <div class="stat">
+            <div><div class="n">±2</div><div class="u">METER · 摆幅</div></div>
+            <div class="info"><b>设计行程</b><span>足以抵消 17 级台风</span></div>
+          </div>
+          <div class="stat">
+            <div><div class="n">120°</div><div class="u">TWIST · 螺旋</div></div>
+            <div class="info"><b>立面扭转</b><span>气动外形本身就能降低风涡</span></div>
+          </div>
+        </div>
+
+        <div class="tower-stage">
+          <svg viewBox="0 0 400 760" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="towerG" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#5fe4f0" stop-opacity="0.85"/>
+                <stop offset="0.6" stop-color="#2a8da0" stop-opacity="0.85"/>
+                <stop offset="1" stop-color="#0d1730"/>
+              </linearGradient>
+              <linearGradient id="ballG3" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#fff1c2"/>
+                <stop offset="0.5" stop-color="#ffd76b"/>
+                <stop offset="1" stop-color="#a76a18"/>
+              </linearGradient>
+              <radialGradient id="haloG" cx="0.5" cy="0.5">
+                <stop offset="0" stop-color="#ffd76b" stop-opacity="0.4"/>
+                <stop offset="1" stop-color="#ffd76b" stop-opacity="0"/>
+              </radialGradient>
+              <filter id="glow"><feGaussianBlur stdDeviation="3"/></filter>
+            </defs>
+            <!-- halo -->
+            <circle cx="200" cy="280" r="120" fill="url(#haloG)"/>
+            <!-- tower outline (twisted) -->
+            <path d="M120,740 L130,460 L150,200 L172,50 L228,50 L250,200 L270,460 L280,740 Z"
+              fill="url(#towerG)" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
+            <!-- twist lines -->
+            <g stroke="rgba(255,255,255,0.18)" stroke-width="0.6" fill="none">
+              <path d="M130,460 Q200,455 270,460"/>
+              <path d="M140,380 Q200,378 260,380"/>
+              <path d="M145,300 Q200,298 255,300"/>
+              <path d="M150,220 Q200,218 250,220"/>
+              <path d="M165,140 Q200,138 235,140"/>
+            </g>
+            <!-- floors hatch -->
+            <g stroke="#5fe4f0" stroke-opacity="0.35" stroke-width="0.4">
+              <line x1="135" y1="420" x2="275" y2="420"/>
+              <line x1="138" y1="380" x2="272" y2="380"/>
+              <line x1="141" y1="340" x2="269" y2="340"/>
+              <line x1="144" y1="300" x2="266" y2="300"/>
+              <line x1="147" y1="260" x2="263" y2="260"/>
+              <line x1="150" y1="220" x2="260" y2="220"/>
+              <line x1="154" y1="180" x2="256" y2="180"/>
+            </g>
+            <!-- 125F chamber -->
+            <rect x="155" y="200" width="90" height="100" fill="rgba(255,215,107,0.10)" stroke="#ffd76b" stroke-width="1.2" stroke-dasharray="3,2"/>
+            <text x="200" y="195" fill="#ffd76b" font-size="9" text-anchor="middle" letter-spacing="2">125F · 慧眼舱</text>
+            <!-- ropes -->
+            <g stroke="rgba(255,255,255,0.7)" stroke-width="0.7">
+              <line x1="168" y1="200" x2="192" y2="240"/>
+              <line x1="178" y1="200" x2="196" y2="240"/>
+              <line x1="188" y1="200" x2="200" y2="240"/>
+              <line x1="232" y1="200" x2="208" y2="240"/>
+              <line x1="222" y1="200" x2="204" y2="240"/>
+              <line x1="212" y1="200" x2="200" y2="240"/>
+            </g>
+            <!-- eye-shaped pendulum -->
+            <g style="transform-origin:200px 240px;animation:pendSwing 3.5s ease-in-out infinite">
+              <path d="M200,240 C175,258 175,278 200,288 C225,278 225,258 200,240Z"
+                fill="url(#ballG3)" stroke="#fff8e1" stroke-width="1.4" filter="url(#glow)"/>
+              <ellipse cx="200" cy="264" rx="10" ry="7" fill="#5a3a10"/>
+              <circle cx="200" cy="264" r="4" fill="#ffd76b"/>
+              <circle cx="201" cy="263" r="1.5" fill="#fff8e1"/>
+            </g>
+            <!-- spire -->
+            <line x1="200" y1="50" x2="200" y2="0" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="200" cy="0" r="3" fill="#ffd76b"/>
+            <!-- ground -->
+            <rect x="50" y="740" width="300" height="20" fill="rgba(255,255,255,0.04)"/>
+            <g stroke="rgba(255,255,255,0.2)" stroke-width="0.4">
+              <line x1="50" y1="740" x2="350" y2="740"/>
+            </g>
+            <text x="200" y="755" fill="#9bb1cf" font-size="9" text-anchor="middle" letter-spacing="3">SHANGHAI · 陆家嘴</text>
+          </svg>
+          <div class="spec-pin p1"><b>顶 632 m</b>风荷载最大</div>
+          <div class="spec-pin p2"><b>125 层</b>慧眼悬挂位置</div>
+          <div class="spec-pin p3"><b>±2 m 摆幅</b>反相位运动</div>
+          <div class="spec-pin p4"><b>地基 86 m</b>桩基入岩盘</div>
+          <style>@keyframes pendSwing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}</style>
+        </div>
+
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>为什么不用油？</h3><span class="tag">DRY · vs · WET</span></div>
+            <p style="color:#ff8a8a">液压方案：维护繁重 · 数十年后油液变质 · 密封件泄漏 · 必须定期维修。</p>
+            <p style="margin-top:6px;color:#4ddca8">电磁涡流：钕铁硼永磁体 + 铜板。零电力、零接触、零流体、几乎免维护。</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>涡流效应</h3><span class="tag">EDDY · CURRENT</span></div>
+            <div class="eddy">
+              <div class="eddy-plate"></div>
+              <div class="eddy-mag"></div>
+              <div class="eddy-curl c1"></div>
+              <div class="eddy-curl c2"></div>
+              <div class="eddy-arr">N→S · 永磁滑过铜板</div>
+            </div>
+            <p style="margin-top:8px">导体在磁场中运动 → 感应出涡流 → 产生反向磁场 → 阻碍运动 → 动能化作热能。</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>居民体验</h3><span class="tag">2019 · 利奇马</span></div>
+            <p>利奇马台风期间，"慧眼"将顶层加速度降低<b>近一半</b>，远低于人体感知阈值。在 581 米高的观光厅，游客可近距离观看这座<b>机械节拍器</b>。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Scene 4: 装置实践 ===== -->
+    <div class="scene" data-scene="4">
+      <div class="scene-head">
+        <div class="scene-title-block">
+          <span class="eyebrow"><span class="num">4</span>HANDS-ON · 桌面实验</span>
+          <h2>装置实践</h2>
+          <div class="sub">用矿泉水瓶 + 配重 · 搭一个能"看得见"的桌面 TMD</div>
+        </div>
+        <div class="crumb"><span>SECTION</span><b>04 / 05</b><span>BUILD · TUNE · TEST</span></div>
+      </div>
+
+      <div class="s4-grid" style="height:calc(100% - 110px)">
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>实验目标</h3></div>
+            <p>让一个高瘦的"塔模型"在外力激励下晃动，然后在其顶部加上一个可调节的<b>水瓶钟摆</b>，亲眼看到振幅被显著减弱。</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>材料清单</h3><span class="tag">BOM</span></div>
+            <div class="materials">
+              <div class="mat"><svg viewBox="0 0 32 32"><path d="M14 4 L18 4 L18 8 L20 10 L20 28 L12 28 L12 10 L14 8 Z"/></svg><b>矿泉水瓶</b><span>500 ml 一只</span></div>
+              <div class="mat"><svg viewBox="0 0 32 32"><circle cx="16" cy="20" r="8"/><path d="M12 12 L20 12 L18 8 L14 8 Z"/></svg><b>配重物</b><span>沙 / 硬币</span></div>
+              <div class="mat"><svg viewBox="0 0 32 32"><path d="M4 6 C12 14 20 14 28 6 M4 16 C12 24 20 24 28 16 M4 26 C12 30 20 30 28 26"/></svg><b>细绳 / 鱼线</b><span>约 50 cm</span></div>
+              <div class="mat"><svg viewBox="0 0 32 32"><rect x="4" y="14" width="24" height="4"/><path d="M8 14 L8 10 M14 14 L14 8 M20 14 L20 10 M26 14 L26 8"/></svg><b>纸板尺</b><span>当塔身</span></div>
+              <div class="mat"><svg viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20" rx="2"/><path d="M10 14 L22 14 M10 18 L22 18"/></svg><b>胶带 · 回形针</b><span>固定 / 悬挂</span></div>
+              <div class="mat"><svg viewBox="0 0 32 32"><path d="M6 28 L16 4 L26 28 Z"/><path d="M6 28 L26 28"/></svg><b>支架</b><span>书 / 文具盒</span></div>
+            </div>
+          </div>
+          <div class="tip">
+            <b>💡 调谐才是灵魂</b>
+            <p>想让 TMD 起作用，水瓶钟摆的<b>摆动周期</b>必须接近塔模型的<b>晃动周期</b>。周期不对，TMD 不仅没用，还可能"添乱"。</p>
+          </div>
+        </div>
+
+        <div class="exp-stage">
+          <div class="exp-grid"></div>
+          <svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="towerG2" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#5fe4f0" stop-opacity="0.8"/>
+                <stop offset="1" stop-color="#1f3458"/>
+              </linearGradient>
+              <linearGradient id="bottleG" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0" stop-color="#a0d8f0" stop-opacity="0.7"/>
+                <stop offset="1" stop-color="#5fe4f0" stop-opacity="0.4"/>
+              </linearGradient>
+            </defs>
+            <!-- ground -->
+            <rect x="50" y="540" width="300" height="14" fill="#5b3a1f" rx="2"/>
+            <line x1="50" y1="540" x2="350" y2="540" stroke="rgba(255,255,255,0.2)"/>
+            <!-- tower -->
+            <rect x="170" y="200" width="60" height="340" fill="url(#towerG2)" stroke="rgba(255,255,255,0.3)" rx="3"/>
+            <g stroke="rgba(95,228,240,0.4)" stroke-width="0.5">
+              <line x1="170" y1="240" x2="230" y2="240"/>
+              <line x1="170" y1="280" x2="230" y2="280"/>
+              <line x1="170" y1="320" x2="230" y2="320"/>
+              <line x1="170" y1="360" x2="230" y2="360"/>
+              <line x1="170" y1="400" x2="230" y2="400"/>
+              <line x1="170" y1="440" x2="230" y2="440"/>
+              <line x1="170" y1="480" x2="230" y2="480"/>
+            </g>
+            <!-- support frame -->
+            <line x1="110" y1="200" x2="110" y2="540" stroke="#8a6a3a" stroke-width="3"/>
+            <line x1="290" y1="200" x2="290" y2="540" stroke="#8a6a3a" stroke-width="3"/>
+            <line x1="110" y1="200" x2="290" y2="200" stroke="#8a6a3a" stroke-width="3"/>
+            <!-- mounting -->
+            <circle cx="200" cy="200" r="4" fill="#ffd76b"/>
+            <!-- pendulum -->
+            <g style="transform-origin:200px 200px;animation:bottleSwing 2.4s ease-in-out infinite">
+              <line x1="200" y1="200" x2="200" y2="260" stroke="rgba(255,255,255,0.6)"/>
+              <!-- bottle -->
+              <rect x="180" y="260" width="40" height="80" rx="6" fill="url(#bottleG)" stroke="rgba(255,255,255,0.5)"/>
+              <rect x="190" y="252" width="20" height="10" fill="#3ddc97"/>
+              <text x="200" y="306" fill="#fff" font-size="10" text-anchor="middle">H₂O</text>
+              <line x1="180" y1="320" x2="220" y2="320" stroke="rgba(255,255,255,0.3)"/>
+            </g>
+            <style>@keyframes bottleSwing{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}</style>
+            <!-- ruler dimensions -->
+            <g stroke="#ffd76b" stroke-width="0.6" fill="none">
+              <line x1="60" y1="260" x2="60" y2="340"/>
+              <line x1="55" y1="260" x2="65" y2="260"/>
+              <line x1="55" y1="340" x2="65" y2="340"/>
+            </g>
+            <text x="70" y="305" fill="#ffd76b" font-size="9">L · 摆长</text>
+            <g stroke="#ffd76b" stroke-width="0.6">
+              <line x1="340" y1="200" x2="340" y2="540"/>
+              <line x1="335" y1="200" x2="345" y2="200"/>
+              <line x1="335" y1="540" x2="345" y2="540"/>
+            </g>
+            <text x="350" y="370" fill="#ffd76b" font-size="9">塔身 H</text>
+          </svg>
+          <div class="exp-note n1"><b>横梁 · 悬挂点</b>固定回形针</div>
+          <div class="exp-note n2"><b>m₂ · 配重水瓶</b>调节装沙量</div>
+          <div class="exp-note n3"><b>m₁ · 塔模型</b>纸卷或塑料尺</div>
+          <div class="label-corner">EXPERIMENT 04 · DESKTOP TMD</div>
+        </div>
+
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>组装与调试</h3><span class="tag">6 STEPS</span></div>
+            <ul class="steps">
+              <li><div class="n">1</div><div class="b"><b>制作塔身：</b>把 A4 纸板卷成约 30 cm 高的细长方筒，底端用胶带固定在桌面。</div></li>
+              <li><div class="n">2</div><div class="b"><b>测定周期 T₁：</b>轻拨塔顶，秒表记 10 次自由振动时间 ÷ 10。</div></li>
+              <li><div class="n">3</div><div class="b"><b>配重水瓶：</b>装沙至 20–50 g（约塔身的 2–5 %）。</div></li>
+              <li><div class="n">4</div><div class="b"><b>调谐摆长：</b>用 T = 2π√(L/g) 反推 L，使 T₂ ≈ T₁；通常 L ≈ 4–10 cm。</div></li>
+              <li><div class="n">5</div><div class="b"><b>悬挂：</b>用细绳挂在塔顶横梁，保持自由摆动。</div></li>
+              <li><div class="n">6</div><div class="b"><b>对比实验：</b>有/无水瓶分别施加相同位移，观察衰减时间。</div></li>
+            </ul>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>预期现象</h3><span class="tag">EXPECTED</span></div>
+            <p>无 TMD 时塔会持续晃动 <b>10 秒以上</b>；挂上调谐好的水瓶后，<b>2–4 秒</b>内就基本静止——副质量在悄悄地"反方向"摆动。</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>变量实验</h3><span class="tag">EXPLORE</span></div>
+            <p>试着改变水瓶装沙量、改变绳长，观察"调谐失误"时会发生什么——它会变成新的振源，把塔晃得更厉害。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Scene 5: 火星 ===== -->
+    <div class="scene" data-scene="5">
+      <div class="s5-bg"></div>
+      <div class="s5-stars">
+        <span style="left:8%;top:8%"></span>
+        <span style="left:22%;top:14%;animation-delay:.6s"></span>
+        <span style="left:38%;top:6%;animation-delay:1.2s"></span>
+        <span style="left:52%;top:12%;animation-delay:.3s"></span>
+        <span style="left:68%;top:9%;animation-delay:1.8s"></span>
+        <span style="left:82%;top:14%;animation-delay:.9s"></span>
+        <span style="left:92%;top:6%;animation-delay:2.4s"></span>
+        <span style="left:5%;top:18%;animation-delay:1.5s"></span>
+        <span style="left:48%;top:20%;animation-delay:2.1s"></span>
+      </div>
+
+      <div class="scene-head">
+        <div class="scene-title-block">
+          <span class="eyebrow" style="border-color:rgba(255,155,84,0.5)"><span class="num" style="background:var(--gold-2)">5</span>FUTURE · MARS COLONY · 异星之塔</span>
+          <h2>移民火星时的 TMD</h2>
+          <div class="sub">抗火震 · 抗尘暴 · 免维护数百年 · 一物多用</div>
+        </div>
+        <div class="crumb"><span>SECTION</span><b>05 / 05</b><span>HABITAT · TOWER · 01</span></div>
+      </div>
+
+      <div class="s5-grid" style="height:calc(100% - 110px)">
+        <div class="col">
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>火星给工程师的难题</h3></div>
+            <p>稀薄但极速的<b>尘暴</b>、低至 -125 ℃ 的夜温、不规律的<b>火震</b>，以及极少的人手和零件——任何依赖油液和密封的装置都会失败。</p>
+          </div>
+          <div class="vs-grid">
+            <div class="vs earth">
+              <h4 style="color:#5fe4f0">🌍 地球 · 上海慧眼</h4>
+              <ul>
+                <li>温度：−5 ~ 40 ℃</li>
+                <li>大气：1 atm</li>
+                <li>风：台风 60 m/s</li>
+                <li>电力：随时供应</li>
+                <li>维护：有专业团队</li>
+              </ul>
+            </div>
+            <div class="vs mars">
+              <h4 style="color:#ff9b54">🔴 火星 · 异星之塔</h4>
+              <ul>
+                <li>温度：−125 ~ 20 ℃</li>
+                <li>大气：~0.006 atm</li>
+                <li>风：高速尘暴</li>
+                <li>电力：极宝贵</li>
+                <li>维护：几近为零</li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="bar"></span><h3>为什么仍要 TMD？</h3></div>
+            <p>火震虽频率低，但<b>持续时间长</b>；尘暴对高瘦的栖息塔会产生类似风涡的周期激励。<b>被动式 TMD 不需要电</b>就能工作，最适合"无人值守"的殖民地基础设施。</p>
+          </div>
+        </div>
+
+        <div class="mars-stage">
+          <div class="dust" id="dust"></div>
+          <div class="mars-tower-wrap">
+            <svg viewBox="0 0 120 340" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="mTowerG" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#dde2e8"/>
+                  <stop offset="0.6" stop-color="#a0a8b0"/>
+                  <stop offset="1" stop-color="#5a606a"/>
+                </linearGradient>
+                <linearGradient id="capG" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0" stop-color="#5fe4f0"/>
+                  <stop offset="1" stop-color="#2a8da0"/>
+                </linearGradient>
+                <radialGradient id="haloM" cx="0.5" cy="0.5">
+                  <stop offset="0" stop-color="#ffd76b" stop-opacity="0.5"/>
+                  <stop offset="1" stop-color="#ffd76b" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <circle cx="60" cy="60" r="50" fill="url(#haloM)"/>
+              <!-- tower body -->
+              <path d="M30,340 L36,80 L48,30 L72,30 L84,80 L90,340 Z" fill="url(#mTowerG)" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+              <!-- water tank top -->
+              <rect x="42" y="20" width="36" height="20" rx="3" fill="url(#capG)" stroke="#fff" stroke-width="0.6"/>
+              <line x1="42" y1="28" x2="78" y2="28" stroke="rgba(255,255,255,0.5)" stroke-dasharray="2,2"/>
+              <text x="60" y="35" fill="#fff" font-size="6" text-anchor="middle" letter-spacing="1">H₂O · TMD</text>
+              <!-- antenna -->
+              <line x1="60" y1="20" x2="60" y2="2" stroke="#fff" stroke-width="0.8"/>
+              <circle cx="60" cy="2" r="1.5" fill="#ffd76b"/>
+              <!-- windows -->
+              <g fill="#5fe4f0" opacity="0.85">
+                <rect x="55" y="80" width="10" height="6"/>
+                <rect x="55" y="100" width="10" height="6"/>
+                <rect x="55" y="120" width="10" height="6"/>
+                <rect x="55" y="140" width="10" height="6"/>
+                <rect x="55" y="160" width="10" height="6"/>
+                <rect x="55" y="180" width="10" height="6"/>
+                <rect x="55" y="200" width="10" height="6"/>
+                <rect x="55" y="220" width="10" height="6"/>
+              </g>
+              <!-- ribs -->
+              <g stroke="rgba(0,0,0,0.4)" stroke-width="0.5">
+                <line x1="36" y1="80" x2="84" y2="80"/>
+                <line x1="38" y1="160" x2="82" y2="160"/>
+                <line x1="40" y1="240" x2="80" y2="240"/>
+                <line x1="42" y1="320" x2="78" y2="320"/>
+              </g>
+              <!-- magnetic field hint at top -->
+              <g stroke="#ffd76b" stroke-width="0.6" fill="none" opacity="0.7">
+                <path d="M40,40 Q60,30 80,40"/>
+                <path d="M36,46 Q60,32 84,46"/>
+                <path d="M32,52 Q60,34 88,52"/>
+              </g>
+            </svg>
+          </div>
+          <!-- ground craters -->
+          <div style="position:absolute;left:8%;bottom:8%;width:90px;height:24px;background:radial-gradient(ellipse,rgba(0,0,0,0.55),transparent 70%);border-radius:50%"></div>
+          <div style="position:absolute;right:12%;bottom:6%;width:70px;height:18px;background:radial-gradient(ellipse,rgba(0,0,0,0.55),transparent 70%);border-radius:50%"></div>
+          <div style="position:absolute;left:40%;bottom:4%;width:50px;height:14px;background:radial-gradient(ellipse,rgba(0,0,0,0.55),transparent 70%);border-radius:50%"></div>
+          <!-- floating astronaut figure -->
+          <div style="position:absolute;left:15%;bottom:30%;width:18px;height:30px;background:linear-gradient(180deg,#fff,#ccc);border-radius:50% 50% 30% 30%"></div>
+
+          <div class="spec-pin" style="top:6%;left:5%"><b>栖息之塔 01</b>火星殖民地原型</div>
+          <div class="spec-pin" style="top:32%;right:5%"><b>顶部水箱</b>同时充当 TMD 质量块</div>
+          <div class="spec-pin" style="bottom:38%;left:5%"><b>钕铁硼磁阵</b>低温真空稳定</div>
+          <div class="spec-pin" style="bottom:6%;right:5%"><b>静止 · 安全 · 可持续</b></div>
+        </div>
+
+        <div class="col">
+          <div class="feat">
+            <div class="fi"><svg viewBox="0 0 24 24"><path d="M12 3 C7 10 5 14 5 17 a7 7 0 0 0 14 0 c0 -3 -2 -7 -7 -14 Z"/></svg></div>
+            <div class="fb"><b>多用途质量块 ① 水库</b><span>把 TMD 做成水箱——殖民地的饮用水储备同时充当 800 吨级配重，一物多用。</span></div>
+          </div>
+          <div class="feat">
+            <div class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M5 19 L7 17 M17 7 L19 5"/></svg></div>
+            <div class="fb"><b>多用途质量块 ② 辐射屏蔽</b><span>外层灌入再生水冰与铁矿渣，对宇宙射线提供生物等效辐射屏蔽，保护核心舱。</span></div>
+          </div>
+          <div class="feat">
+            <div class="fi"><svg viewBox="0 0 24 24"><path d="M12 3 L12 14"/><circle cx="12" cy="17" r="4"/><path d="M9 8 L15 8 M9 11 L15 11"/></svg></div>
+            <div class="fb"><b>多用途质量块 ③ 热惯性</b><span>巨大热惯性平滑昼夜温差 (−125 ℃ → +20 ℃)，让居住区温度波动减半。</span></div>
+          </div>
+          <div class="feat">
+            <div class="fi"><svg viewBox="0 0 24 24"><path d="M8 3 L8 13 a4 4 0 0 0 8 0 L16 3"/><path d="M5 3 L11 3 M13 3 L19 3 M5 21 L19 21"/></svg></div>
+            <div class="fb"><b>电磁涡流阻尼</b><span>钕铁硼永磁体在低温真空里反而更稳定，几乎不退磁。无液体、无密封、无电力。</span></div>
+          </div>
+          <div class="feat">
+            <div class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12 L21 12 M12 3 a14 14 0 0 1 0 18 a14 14 0 0 1 0 -18"/></svg></div>
+            <div class="fb"><b>免维护 200 年</b><span>无运动接触面，无油液老化。距地球数亿公里，仍能持续运行——这就是被动式之美。</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======= Bottom Nav ======= -->
+  <div class="nav">
+    <div class="nav-item active" data-target="1">
+      <div class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7 L12 12 L16 14"/></svg></div>
+      <div class="ni-txt"><span class="ni-num">CHAPTER 01</span><span class="ni-name">历史起源</span></div>
+      <span class="ni-arrow">›</span>
+    </div>
+    <div class="nav-item" data-target="2">
+      <div class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M5 19 L7 17 M17 7 L19 5"/></svg></div>
+      <div class="ni-txt"><span class="ni-num">CHAPTER 02</span><span class="ni-name">原理分析</span></div>
+      <span class="ni-arrow">›</span>
+    </div>
+    <div class="nav-item" data-target="3">
+      <div class="ni-ico"><svg viewBox="0 0 24 24"><path d="M6 21 L6 6 L12 3 L18 6 L18 21 Z"/><path d="M9 9 L9 12 M9 14 L9 17 M15 9 L15 12 M15 14 L15 17"/></svg></div>
+      <div class="ni-txt"><span class="ni-num">CHAPTER 03</span><span class="ni-name">上海慧眼</span></div>
+      <span class="ni-arrow">›</span>
+    </div>
+    <div class="nav-item" data-target="4">
+      <div class="ni-ico"><svg viewBox="0 0 24 24"><path d="M9 3 L15 3 L15 9 L19 17 a3 3 0 0 1 -3 4 L8 21 a3 3 0 0 1 -3 -4 L9 9 Z"/></svg></div>
+      <div class="ni-txt"><span class="ni-num">CHAPTER 04</span><span class="ni-name">装置实践</span></div>
+      <span class="ni-arrow">›</span>
+    </div>
+    <div class="nav-item" data-target="5">
+      <div class="ni-ico"><svg viewBox="0 0 24 24"><path d="M12 2 C7 8 7 16 12 22 C17 16 17 8 12 2 Z"/><circle cx="12" cy="10" r="2"/></svg></div>
+      <div class="ni-txt"><span class="ni-num">CHAPTER 05</span><span class="ni-name">移民火星</span></div>
+      <span class="ni-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const chapters = {
+  1:{num:"CHAPTER 01",name:"历史起源"},
+  2:{num:"CHAPTER 02",name:"原理分析"},
+  3:{num:"CHAPTER 03",name:"上海中心慧眼"},
+  4:{num:"CHAPTER 04",name:"装置实践"},
+  5:{num:"CHAPTER 05",name:"移民火星"}
+};
+const items = document.querySelectorAll('.nav-item');
+const scenes = document.querySelectorAll('.scene');
+const chapNum = document.getElementById('chapNum');
+const chapName = document.getElementById('chapName');
+
+items.forEach(it=>{
+  it.addEventListener('click',()=>{
+    const t = it.dataset.target;
+    items.forEach(x=>x.classList.remove('active'));
+    it.classList.add('active');
+    scenes.forEach(s=>s.classList.remove('active'));
+    document.querySelector(`.scene[data-scene="${t}"]`).classList.add('active');
+    chapNum.textContent = chapters[t].num;
+    chapName.textContent = chapters[t].name;
+  });
+});
+
+// Keyboard navigation
+document.addEventListener('keydown',e=>{
+  let cur=1; items.forEach((it,i)=>{if(it.classList.contains('active'))cur=i+1;});
+  if(e.key==='ArrowRight'&&cur<5)items[cur].click();
+  if(e.key==='ArrowLeft'&&cur>1)items[cur-2].click();
+});
+
+// 顶部时间
+function updateTime(){
+  const d = new Date();
+  const pad = n=>String(n).padStart(2,'0');
+  const t = `${d.getFullYear()}·${pad(d.getMonth()+1)}·${pad(d.getDate())} · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  document.getElementById('metaTime').textContent = t;
+}
+setInterval(updateTime,1000); updateTime();
+
+// 背景粒子
+const pc = document.getElementById('particles');
+for(let i=0;i<26;i++){
+  const s = document.createElement('span');
+  const size = 1+Math.random()*2.5;
+  s.style.width=s.style.height=size+'px';
+  s.style.left=(Math.random()*100)+'%';
+  s.style.bottom=(-10-Math.random()*20)+'%';
+  s.style.animationDelay=(-Math.random()*18)+'s';
+  s.style.animationDuration=(14+Math.random()*10)+'s';
+  pc.appendChild(s);
+}
+
+// 火星尘暴粒子
+const dust = document.getElementById('dust');
+for(let i=0;i<40;i++){
+  const s = document.createElement('span');
+  s.style.top=(Math.random()*100)+'%';
+  s.style.left=(-5-Math.random()*15)+'%';
+  s.style.animationDuration=(2+Math.random()*4)+'s';
+  s.style.animationDelay=(-Math.random()*5)+'s';
+  s.style.opacity=0.3+Math.random()*0.5;
+  dust.appendChild(s);
+}
+</script>
+</body>
+</html>
