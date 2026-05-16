@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>调谐质量阻尼器 · TMD 科普交互</title>
+<title>调谐质量阻尼器 · 阻尼器 科普交互</title>
 <style>
 :root{
   --bg-0:#070d1c;
@@ -48,1248 +48,1169 @@ html,body{width:1920px;height:1080px;background:#000;color:var(--text);
 }
 .bg-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .bg-particles span{
-  position:absolute;display:block;border-radius:50%;
-  background:radial-gradient(circle, rgba(255,255,255,0.9), transparent 70%);
-  animation:floatUp 18s linear infinite;
+  position:absolute;width:2px;height:2px;background:rgba(255,255,255,0.25);
+  border-radius:50%;animation:float 12s infinite ease-in-out
 }
-@keyframes floatUp{
-  0%{transform:translateY(0) translateX(0);opacity:0}
-  10%{opacity:0.7}
-  90%{opacity:0.7}
-  100%{transform:translateY(-1100px) translateX(40px);opacity:0}
+@keyframes float{
+  0%,100%{transform:translateY(0) translateX(0);opacity:0}
+  10%{opacity:1}
+  90%{opacity:1}
+  100%{transform:translateY(-100px) translateX(50px);opacity:0}
 }
 
-/* ============ 顶栏 ============ */
-.header{
-  position:absolute;top:0;left:0;right:0;height:96px;z-index:30;
-  display:flex;align-items:center;justify-content:space-between;padding:0 64px;
-  background:linear-gradient(180deg, rgba(0,0,0,0.55), transparent);
+/* ============ 页面过渡 ============ */
+.page{
+  position:absolute;inset:0;display:none;
+  opacity:0;transform:translateY(20px);transition:opacity .6s ease, transform .6s ease
 }
-.brand{display:flex;align-items:center;gap:18px}
-.brand-mark{
-  width:58px;height:58px;border-radius:16px;position:relative;
-  background:linear-gradient(135deg,#ffd76b 0%,#ff7a1f 100%);
-  box-shadow:0 10px 30px rgba(255,122,31,0.4),inset 0 0 0 1px rgba(255,255,255,0.3);
-  display:grid;place-items:center;
-}
-.brand-mark svg{width:32px;height:32px}
-.brand-text h1{font-size:24px;letter-spacing:6px;font-weight:700}
-.brand-text p{font-size:11px;letter-spacing:6px;color:var(--text-mute);margin-top:4px}
+.page.active{display:block;opacity:1;transform:translateY(0)}
 
-.meta{display:flex;align-items:center;gap:18px}
-.meta-pill{
-  display:flex;align-items:center;gap:12px;
-  padding:10px 22px;border-radius:30px;
-  background:rgba(255,255,255,0.04);border:1px solid var(--line-2);
-  backdrop-filter:blur(10px);
-}
-.meta-pill .live{
-  width:8px;height:8px;border-radius:50%;background:var(--mint);
-  box-shadow:0 0 10px var(--mint);animation:livePulse 1.5s ease-in-out infinite;
-}
-@keyframes livePulse{50%{transform:scale(1.4);opacity:0.5}}
-.meta-pill b{font-size:13px;letter-spacing:3px}
-.meta-pill i{font-style:normal;color:var(--text-dim);font-size:12px;letter-spacing:2px}
-.meta-time{font-size:11px;color:var(--text-mute);letter-spacing:3px;font-variant-numeric:tabular-nums}
-
-/* ============ 舞台 ============ */
-.stage{position:absolute;top:96px;left:0;right:0;bottom:128px;overflow:hidden}
-.scene{
-  position:absolute;inset:0;padding:24px 64px;
-  opacity:0;pointer-events:none;transform:translateY(24px) scale(0.99);
-  transition:opacity .6s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1);
-}
-.scene.active{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
-
-/* ============ 标题块 ============ */
-.scene-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px}
-.scene-title-block .eyebrow{
-  display:inline-flex;align-items:center;gap:10px;font-size:11px;letter-spacing:6px;color:var(--gold);
-  padding:4px 12px;border:1px solid rgba(255,215,107,0.4);border-radius:20px;margin-bottom:10px;
-}
-.scene-title-block .eyebrow .num{
-  width:18px;height:18px;border-radius:50%;background:var(--gold);color:#1b1300;
-  display:grid;place-items:center;font-size:10px;font-weight:800;
-}
-.scene-title-block h2{
-  font-size:46px;font-weight:800;letter-spacing:6px;line-height:1;
-  background:linear-gradient(180deg,#fff8e1 0%,#ffd76b 60%,#ff9b54 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.scene-title-block .sub{font-size:13px;color:var(--text-dim);letter-spacing:6px;margin-top:10px}
-.scene-head .crumb{
-  display:flex;align-items:center;gap:14px;color:var(--text-mute);
-  font-size:11px;letter-spacing:3px;
-}
-.scene-head .crumb b{color:var(--text);font-size:12px}
-
-/* ============ 卡片基础 ============ */
-.card{
-  position:relative;
-  background:linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02));
-  border:1px solid var(--line-2);border-radius:18px;
-  padding:20px 22px;backdrop-filter:blur(10px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.25);
-}
-.card.glow:hover{border-color:rgba(255,215,107,0.5);transform:translateY(-2px);transition:.3s}
-.card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.card-head .bar{width:4px;height:18px;border-radius:2px;background:linear-gradient(180deg,var(--gold),var(--gold-2))}
-.card-head h3{font-size:16px;letter-spacing:2px;font-weight:700}
-.card-head .tag{
-  margin-left:auto;font-size:10px;letter-spacing:2px;
-  color:var(--text-mute);border:1px solid var(--line-2);padding:2px 8px;border-radius:10px;
-}
-.card p{font-size:13px;line-height:1.75;color:var(--text-dim)}
-.card p b{color:var(--text)}
-.card .hr{height:1px;background:linear-gradient(90deg,transparent,var(--line-2),transparent);margin:10px 0}
-
-/* ============ 底部导航 ============ */
+/* ============ 导航栏 ============ */
 .nav{
-  position:absolute;bottom:0;left:0;right:0;height:128px;z-index:30;
-  display:flex;align-items:center;justify-content:center;gap:18px;padding:0 64px;
-  background:linear-gradient(0deg, rgba(0,0,0,0.65), transparent);
+  position:fixed;top:0;left:0;right:0;height:64px;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;padding:0 48px;
+  background:linear-gradient(to bottom, rgba(7,13,28,0.95), rgba(7,13,28,0.6));
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)
 }
-.nav::before{
-  content:"";position:absolute;top:0;left:64px;right:64px;height:1px;
-  background:linear-gradient(90deg,transparent,var(--line-2),transparent);
-}
-.nav-item{
-  position:relative;flex:1;max-width:336px;height:84px;cursor:pointer;
-  background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
-  border:1px solid var(--line-2);border-radius:18px;
-  display:flex;align-items:center;gap:14px;padding:0 20px;
-  transition:.3s cubic-bezier(.2,.7,.2,1);overflow:hidden;
-}
-.nav-item .ni-ico{
-  width:48px;height:48px;border-radius:12px;flex-shrink:0;
-  background:rgba(255,255,255,0.05);border:1px solid var(--line-2);
-  display:grid;place-items:center;transition:.3s;
-}
-.nav-item .ni-ico svg{width:24px;height:24px;stroke:var(--text);fill:none;stroke-width:1.6;transition:.3s}
-.nav-item .ni-txt{display:flex;flex-direction:column;gap:2px}
-.nav-item .ni-num{font-size:10px;letter-spacing:3px;color:var(--text-mute)}
-.nav-item .ni-name{font-size:16px;font-weight:600;letter-spacing:2px}
-.nav-item .ni-arrow{margin-left:auto;font-size:18px;color:var(--text-mute);opacity:0;transition:.3s}
-.nav-item:hover{transform:translateY(-4px);border-color:rgba(255,215,107,0.4)}
-.nav-item.active{
-  background:linear-gradient(135deg,rgba(255,215,107,0.18),rgba(255,122,31,0.10));
-  border-color:rgba(255,215,107,0.7);
-  box-shadow:0 18px 40px rgba(255,155,84,0.18), inset 0 0 0 1px rgba(255,215,107,0.2);
-}
-.nav-item.active .ni-ico{background:linear-gradient(135deg,var(--gold),var(--gold-2));border-color:transparent}
-.nav-item.active .ni-ico svg{stroke:#1b1300;stroke-width:2}
-.nav-item.active .ni-arrow{opacity:1;color:var(--gold)}
-.nav-item.active::after{
-  content:"";position:absolute;left:14px;right:14px;top:-1px;height:3px;border-radius:2px;
-  background:linear-gradient(90deg,var(--gold),var(--gold-2));
-  box-shadow:0 0 12px var(--gold);
-}
-
-/* ===================== Scene 1 ===================== */
-.s1-grid{display:grid;grid-template-columns:1fr;height:100%;gap:18px}
-.timeline-wrap{position:relative;height:520px;margin-top:10px}
-.timeline-axis{
-  position:absolute;left:30px;right:30px;top:260px;height:2px;
-  background:linear-gradient(90deg,var(--cyan-2),var(--gold) 60%, var(--gold-2));
-}
-.timeline-axis::before,.timeline-axis::after{
-  content:"";position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;
-}
-.timeline-axis::before{left:-6px;background:var(--cyan)}
-.timeline-axis::after{right:-6px;background:var(--gold-2);box-shadow:0 0 12px var(--gold-2)}
-.tl-tick{position:absolute;top:-8px;width:2px;height:18px;background:rgba(140,180,230,0.4)}
-
-.tl-node{
-  position:absolute;width:300px;display:flex;flex-direction:column;align-items:center;
-  cursor:pointer;transition:.3s;
-}
-.tl-node .year{
-  font-family:"Inter","Helvetica Neue",sans-serif;
-  font-size:24px;font-weight:800;letter-spacing:2px;
-  background:linear-gradient(180deg,#ffd76b,#ff9b54);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  margin-bottom:8px;
-}
-.tl-node .ring{
-  width:96px;height:96px;border-radius:50%;position:relative;
-  background:radial-gradient(circle at 35% 35%, #2d4670 0%, #0d1730 80%);
-  border:2px solid rgba(255,215,107,0.6);
-  display:grid;place-items:center;
-  box-shadow:0 8px 20px rgba(0,0,0,0.4), inset 0 0 0 4px rgba(0,0,0,0.4);
-  transition:.3s;
-}
-.tl-node .ring::before{
-  content:"";position:absolute;inset:-8px;border-radius:50%;
-  border:1px dashed rgba(255,215,107,0.3);
-  animation:ringSpin 18s linear infinite;
-}
-@keyframes ringSpin{to{transform:rotate(360deg)}}
-.tl-node .ring svg{width:42px;height:42px;stroke:var(--gold);fill:none;stroke-width:1.5}
-.tl-node:hover .ring{transform:scale(1.06);border-color:var(--gold);box-shadow:0 10px 30px rgba(255,215,107,0.5)}
-.tl-node:hover .ring::before{animation-duration:6s}
-.tl-node .name{font-size:15px;font-weight:700;letter-spacing:1px;text-align:center;margin-top:14px}
-.tl-node .desc{font-size:11.5px;color:var(--text-dim);line-height:1.65;text-align:center;margin-top:8px;padding:0 16px}
-.tl-node .badge{
-  font-size:10px;letter-spacing:2px;color:var(--gold);
-  border:1px solid rgba(255,215,107,0.4);padding:2px 8px;border-radius:10px;margin-top:6px;
-}
-
-.tl-node:nth-child(2n){flex-direction:column-reverse}
-.tl-node:nth-child(2n) .desc{margin-top:0;margin-bottom:8px}
-.tl-node:nth-child(2n) .name{margin-top:0;margin-bottom:8px}
-.tl-node:nth-child(2n) .badge{margin-top:0;margin-bottom:8px}
-
-.connector{
-  position:absolute;top:228px;width:2px;height:32px;
-  background:linear-gradient(180deg,transparent,var(--gold));
-  left:50%;transform:translateX(-50%);
-}
-.tl-node:nth-child(2n) .connector{top:auto;bottom:228px;
-  background:linear-gradient(0deg,transparent,var(--gold));
-}
-
-.s1-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:auto}
-
-/* ===================== Scene 2 ===================== */
-.s2-grid{display:grid;grid-template-columns:1.05fr 1.1fr 1fr;gap:20px;height:100%}
-.col{display:flex;flex-direction:column;gap:16px}
-
-.bld-illu{
-  position:relative;height:320px;border-radius:14px;overflow:hidden;
-  background:
-    radial-gradient(ellipse at 80% 30%, rgba(95,228,240,0.10), transparent 60%),
-    linear-gradient(180deg,rgba(255,255,255,0.03),transparent);
-  border:1px solid var(--line-2);
-}
-.bld-grid{
-  position:absolute;inset:0;
-  background-image:linear-gradient(rgba(95,228,240,0.07) 1px,transparent 1px);
-  background-size:100% 24px;
-}
-.bld-svg{position:absolute;left:0;right:0;bottom:0;top:0;width:100%;height:100%}
-.wind-label{
-  position:absolute;left:14px;top:14px;font-size:10px;letter-spacing:3px;color:var(--cyan);
-  border:1px solid rgba(95,228,240,0.4);padding:3px 8px;border-radius:10px;
-}
-
-.eq-row{display:flex;align-items:center;justify-content:center;gap:12px;padding:18px 12px}
-.eq-mass{
-  display:grid;place-items:center;border-radius:8px;font-size:12px;font-weight:800;letter-spacing:1px;
-  text-align:center;line-height:1.2;position:relative;
-}
-.eq-m1{width:80px;height:96px;background:linear-gradient(180deg,#3a567f,#1f3458);color:#fff;border:1px solid rgba(255,255,255,0.2)}
-.eq-m2{width:70px;height:70px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#1b1300;box-shadow:0 0 24px rgba(255,155,84,0.4)}
-.eq-mass small{font-size:10px;display:block;color:rgba(255,255,255,0.7);margin-top:2px}
-.eq-m2 small{color:rgba(27,19,0,0.7)}
-.eq-spring{
-  width:60px;height:18px;position:relative;
-}
-.eq-spring svg{width:100%;height:100%}
-.eq-damper{
-  width:56px;height:18px;border:2px solid var(--cyan);border-radius:3px;
-  position:relative;background:linear-gradient(90deg,var(--cyan) 55%,transparent 55%);
-}
-.eq-damper::after{
-  content:"";position:absolute;left:-8px;top:50%;width:14px;height:2px;background:var(--cyan);transform:translateY(-50%);
-}
-.eq-label{font-size:10px;color:var(--text-mute);text-align:center;margin-top:6px;letter-spacing:1px}
-
-.formula{
-  font-family:"Cambria Math","Times New Roman",serif;
-  font-size:26px;text-align:center;color:var(--gold);
-  padding:14px;background:rgba(255,215,107,0.06);border-radius:12px;
-  border:1px dashed rgba(255,215,107,0.35);
-  letter-spacing:1px;
-}
-.formula small{font-size:12px;color:var(--text-dim);display:block;margin-top:6px;font-family:inherit;letter-spacing:2px}
-
-.steps{list-style:none;padding:0}
-.steps li{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
-.steps li:last-child{border-bottom:none}
-.steps .n{
-  width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  color:#1b1300;font-weight:800;display:grid;place-items:center;font-size:12px;flex-shrink:0;
-}
-.steps .b{font-size:13px;line-height:1.65;color:var(--text-dim)}
-.steps .b b{color:var(--text)}
-
-.scope{height:160px;padding:12px;position:relative}
-.scope svg{width:100%;height:100%;display:block}
-.scope-legend{position:absolute;right:14px;top:14px;display:flex;gap:14px;font-size:10px;letter-spacing:2px}
-.scope-legend .dot{display:inline-block;width:8px;height:2px;margin-right:6px;vertical-align:middle}
-
-/* ===================== Scene 3 ===================== */
-.s3-grid{display:grid;grid-template-columns:1.05fr 1.5fr 1.05fr;gap:20px;height:100%}
-.tower-stage{
-  position:relative;height:100%;border-radius:18px;border:1px solid var(--line-2);overflow:hidden;
-  background:
-    radial-gradient(ellipse 600px 600px at 50% 60%, rgba(95,228,240,0.10), transparent 70%),
-    linear-gradient(180deg,rgba(255,255,255,0.02),transparent);
-}
-.tower-stage svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:92%;height:96%}
-
-.spec-pin{
-  position:absolute;
-  background:rgba(7,13,28,0.85);border:1px solid rgba(255,215,107,0.5);
-  padding:8px 12px;border-radius:10px;font-size:11px;color:var(--gold);
-  letter-spacing:1.5px;backdrop-filter:blur(8px);
-  box-shadow:0 6px 18px rgba(0,0,0,0.4);
-}
-.spec-pin b{display:block;font-size:13px;color:#fff;letter-spacing:1px;margin-bottom:2px}
-.spec-pin::before{
-  content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--gold);
-  box-shadow:0 0 10px var(--gold);
-}
-.spec-pin.p1{top:10%;left:6%}.spec-pin.p1::before{right:-18px;top:50%;transform:translateY(-50%)}
-.spec-pin.p2{top:34%;right:6%}.spec-pin.p2::before{left:-18px;top:50%;transform:translateY(-50%)}
-.spec-pin.p3{bottom:34%;left:6%}.spec-pin.p3::before{right:-18px;top:50%;transform:translateY(-50%)}
-.spec-pin.p4{bottom:8%;right:6%}.spec-pin.p4::before{left:-18px;top:50%;transform:translateY(-50%)}
-
-.stat{
-  display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:14px;
-  background:linear-gradient(135deg,rgba(95,228,240,0.10),rgba(95,228,240,0.02));
-  border:1px solid rgba(95,228,240,0.25);
-  position:relative;overflow:hidden;
-}
-.stat::before{
-  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--mint));
-}
-.stat .n{
-  font-family:"Inter","Helvetica Neue",sans-serif;
-  font-size:30px;font-weight:800;line-height:1;min-width:90px;
-  background:linear-gradient(180deg,#a4f0ff,var(--cyan) 60%,var(--cyan-2));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.stat .u{font-size:11px;color:var(--text-mute);letter-spacing:2px;display:block;margin-top:4px}
-.stat .info b{font-size:13px;display:block;letter-spacing:1px}
-.stat .info span{font-size:11px;color:var(--text-dim);letter-spacing:1px}
-
-.eddy{
-  position:relative;height:140px;border-radius:12px;overflow:hidden;
-  background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.2));
-  border:1px solid var(--line-2);
-}
-.eddy-plate{
-  position:absolute;left:8%;right:8%;top:60%;height:16px;
-  background:linear-gradient(180deg,#d39c4f 0%,#8a5a20 70%,#5b3a10 100%);
-  border-radius:3px;box-shadow:0 4px 14px rgba(0,0,0,0.5);
-}
-.eddy-mag{
-  position:absolute;top:30%;left:50%;width:54px;height:36px;border-radius:6px;
-  background:linear-gradient(180deg,#ff6b6b 50%,#5fe4f0 50%);
-  border:2px solid #fff;transform:translateX(-50%);
-  animation:magMove 2.6s ease-in-out infinite;
-  box-shadow:0 6px 18px rgba(0,0,0,0.5);
-}
-@keyframes magMove{0%,100%{transform:translateX(-160%)}50%{transform:translateX(60%)}}
-.eddy-curl{
-  position:absolute;top:62%;width:22px;height:22px;border-radius:50%;
-  border:2px solid var(--gold);opacity:0;
-}
-.eddy-curl.c1{left:36%;animation:curlA 2.6s ease-in-out infinite}
-.eddy-curl.c2{left:58%;animation:curlA 2.6s ease-in-out infinite .4s}
-@keyframes curlA{0%,100%{opacity:0;transform:scale(0.4)}50%{opacity:1;transform:scale(1.6)}}
-.eddy-arr{
-  position:absolute;left:10%;bottom:8px;font-size:10px;letter-spacing:2px;color:var(--gold);
-}
-
-/* ===================== Scene 4 ===================== */
-.s4-grid{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:20px;height:100%}
-.materials{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mat{
-  background:rgba(255,255,255,0.03);border:1px solid var(--line-2);
-  border-radius:12px;padding:12px 10px;text-align:center;
-}
-.mat svg{width:32px;height:32px;stroke:var(--gold);fill:none;stroke-width:1.4;margin-bottom:4px}
-.mat b{font-size:12px;display:block;margin-top:2px}
-.mat span{font-size:10px;color:var(--text-mute);letter-spacing:1px}
-
-.exp-stage{
-  position:relative;height:100%;border-radius:18px;overflow:hidden;
-  background:linear-gradient(180deg,rgba(255,255,255,0.03),transparent);
-  border:1px solid var(--line-2);
-}
-.exp-grid{
-  position:absolute;inset:0;
-  background-image:
-    linear-gradient(rgba(140,180,230,0.05) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(140,180,230,0.05) 1px,transparent 1px);
-  background-size:40px 40px;
-}
-.exp-stage svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:90%;height:96%}
-.exp-note{
-  position:absolute;background:rgba(7,13,28,0.85);
-  border:1px solid rgba(255,215,107,0.4);padding:6px 10px;border-radius:8px;
-  font-size:11px;color:var(--gold);letter-spacing:1.5px;backdrop-filter:blur(6px);
-}
-.exp-note b{display:block;color:#fff;font-size:12px}
-.exp-note.n1{top:6%;left:6%}
-.exp-note.n2{top:36%;right:6%}
-.exp-note.n3{bottom:24%;left:6%}
-
-.tip{
-  background:linear-gradient(135deg,rgba(255,215,107,0.14),rgba(255,122,31,0.06));
-  border:1px dashed rgba(255,215,107,0.5);border-radius:14px;padding:14px 16px;
-}
-.tip b{display:block;color:var(--gold);font-size:13px;margin-bottom:6px;letter-spacing:1px}
-.tip p{font-size:12px;line-height:1.7;color:var(--text)}
-
-/* ===================== Scene 5 ===================== */
-.s5-bg{
-  position:absolute;inset:0;z-index:-1;
-  background:
-    radial-gradient(circle at 80% 22%, rgba(255,200,150,0.7) 0%, rgba(255,200,150,0) 4%),
-    radial-gradient(circle at 80% 22%, rgba(255,155,84,0.4) 0%, rgba(255,155,84,0) 9%),
-    radial-gradient(ellipse 900px 600px at 70% 35%, rgba(255,107,71,0.18), transparent 65%),
-    linear-gradient(180deg,#1a0a05 0%,#3a1810 55%,#7a3a1a 100%);
-}
-.s5-stars{position:absolute;inset:0;pointer-events:none;z-index:-1}
-.s5-stars span{
-  position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;
-  animation:twinkle 4s ease-in-out infinite;
-}
-@keyframes twinkle{0%,100%{opacity:0.2}50%{opacity:1}}
-
-.s5-grid{display:grid;grid-template-columns:1.05fr 1.4fr 1.05fr;gap:20px;height:100%;position:relative}
-
-.mars-stage{
-  position:relative;height:100%;border-radius:18px;overflow:hidden;
-  border:1px solid rgba(255,155,84,0.3);
-  background:
-    radial-gradient(ellipse 700px 500px at 50% 60%, rgba(255,107,71,0.25), transparent 70%);
-}
-.mars-stage::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:35%;
-  background:linear-gradient(180deg,transparent,#3a1810 70%, #1a0a05);
-}
-.dust{position:absolute;inset:0;overflow:hidden}
-.dust span{
-  position:absolute;width:4px;height:1px;background:rgba(255,200,150,0.6);
-  border-radius:50%;animation:dustSlide linear infinite;
-}
-@keyframes dustSlide{from{transform:translateX(-50px)}to{transform:translateX(800px)}}
-
-.mars-tower-wrap{position:absolute;left:50%;bottom:24%;transform:translateX(-50%);width:120px;height:340px;z-index:2}
-.mars-tower-wrap svg{width:100%;height:100%}
-
-.vs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.vs{
-  background:rgba(255,255,255,0.03);border:1px solid var(--line-2);
-  border-radius:12px;padding:12px;
-}
-.vs.earth{border-color:rgba(95,228,240,0.4)}
-.vs.mars{border-color:rgba(255,107,71,0.5)}
-.vs h4{font-size:12px;margin-bottom:8px;letter-spacing:2px}
-.vs ul{list-style:none;font-size:11px;color:var(--text-dim);line-height:1.8}
-.vs li::before{content:"·";margin-right:6px;color:var(--gold)}
-
-.feat{
-  display:flex;gap:12px;padding:14px 16px;border-radius:14px;
-  background:linear-gradient(135deg,rgba(255,215,107,0.08),rgba(255,107,71,0.04));
-  border:1px solid rgba(255,155,84,0.25);
-}
-.feat .fi{
-  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+.nav-logo{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700;letter-spacing:0.5px}
+.nav-logo::before{
+  content:"";width:32px;height:32px;border-radius:8px;
   background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  display:grid;place-items:center;
-  box-shadow:0 6px 16px rgba(255,122,31,0.3);
+  box-shadow:0 4px 20px rgba(255,155,84,0.4)
 }
-.feat .fi svg{width:24px;height:24px;stroke:#1b1300;fill:none;stroke-width:1.8}
-.feat .fb b{font-size:13px;display:block;margin-bottom:4px;color:var(--gold);letter-spacing:1px}
-.feat .fb span{font-size:11.5px;color:var(--text-dim);line-height:1.7}
+.nav-links{display:flex;gap:8px}
+.nav-btn{
+  padding:10px 20px;border-radius:8px;border:none;background:transparent;
+  color:var(--text-dim);font-size:14px;cursor:pointer;transition:all .3s ease;
+  font-family:inherit
+}
+.nav-btn:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+.nav-btn.active{color:var(--gold);background:rgba(255,215,107,0.12)}
 
-/* ============ 共用元素 ============ */
-.label-corner{position:absolute;right:18px;top:18px;font-size:10px;letter-spacing:3px;color:var(--text-mute)}
+/* ============ 页面1: 首页 ============ */
+.hero{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:0 120px}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;
+  background:rgba(95,228,240,0.12);border:1px solid rgba(95,228,240,0.3);
+  color:var(--cyan);font-size:13px;margin-bottom:32px;letter-spacing:1px
+}
+.hero h1{font-size:64px;font-weight:800;line-height:1.1;margin-bottom:24px;letter-spacing:-1px}
+.hero h1 span{background:linear-gradient(135deg,var(--gold),var(--gold-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{font-size:20px;color:var(--text-dim);line-height:1.7;max-width:800px;margin-bottom:48px}
+.hero-cta{
+  display:flex;gap:16px
+}
+.btn-primary{
+  padding:16px 40px;border-radius:12px;border:none;
+  background:linear-gradient(135deg,var(--gold),var(--gold-2));
+  color:#1a0f00;font-size:16px;font-weight:700;cursor:pointer;
+  box-shadow:0 8px 32px rgba(255,155,84,0.35);transition:all .3s ease;
+  font-family:inherit
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,155,84,0.5)}
+.btn-secondary{
+  padding:16px 40px;border-radius:12px;border:1px solid var(--line-2);
+  background:rgba(255,255,255,0.03);color:var(--text);font-size:16px;cursor:pointer;
+  transition:all .3s ease;font-family:inherit
+}
+.btn-secondary:hover{background:rgba(255,255,255,0.08);border-color:var(--cyan)}
+
+/* 首页装饰元素 */
+.hero-visual{
+  position:absolute;right:80px;top:50%;transform:translateY(-50%);
+  width:400px;height:500px;pointer-events:none
+}
+.tower-mini{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:120px;height:380px;background:linear-gradient(to top,var(--bg-2),var(--bg-1));
+  border-radius:8px 8px 0 0;border:1px solid var(--line-2);
+  box-shadow:0 0 60px rgba(95,228,240,0.2)
+}
+.tower-mini::before{
+  content:"";position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+  width:0;height:0;border-left:60px solid transparent;border-right:60px solid transparent;
+  border-bottom:30px solid var(--bg-2)
+}
+.damper-pulse{
+  position:absolute;top:80px;left:50%;transform:translateX(-50%);
+  width:80px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-2));
+  border-radius:6px;box-shadow:0 0 40px rgba(255,215,107,0.6);
+  animation:pulse 2s infinite ease-in-out
+}
+@keyframes pulse{
+  0%,100%{transform:translateX(-50%) scale(1);opacity:1}
+  50%{transform:translateX(-50%) scale(1.05);opacity:0.8}
+}
+
+/* ============ 页面2: 原理 ============ */
+.theory{position:relative;height:100%;padding:100px 80px 40px;display:flex;gap:60px}
+.theory-left{flex:1;display:flex;flex-direction:column;justify-content:center}
+.theory-left h2{font-size:42px;font-weight:700;margin-bottom:16px}
+.theory-left h2 span{color:var(--cyan)}
+.theory-left .subtitle{font-size:16px;color:var(--text-dim);margin-bottom:48px}
+
+.principle-cards{display:flex;flex-direction:column;gap:20px}
+.p-card{
+  padding:28px;border-radius:16px;background:rgba(255,255,255,0.03);
+  border:1px solid var(--line);transition:all .3s ease
+}
+.p-card:hover{border-color:var(--line-2);background:rgba(255,255,255,0.05);transform:translateX(8px)}
+.p-card h3{font-size:18px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.p-card h3::before{
+  content:"";width:8px;height:8px;border-radius:50%;background:var(--cyan);
+  box-shadow:0 0 12px var(--cyan)
+}
+.p-card p{font-size:14px;color:var(--text-dim);line-height:1.7}
+
+.theory-right{
+  width:700px;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  position:relative
+}
+
+/* 物理示意图 */
+.physics-diagram{
+  position:relative;width:100%;height:500px;background:var(--bg-1);border-radius:20px;
+  border:1px solid var(--line);overflow:hidden
+}
+.building-sway{
+  position:absolute;left:100px;top:50px;width:200px;height:400px;
+  transform-origin:bottom center;animation:sway 4s infinite ease-in-out
+}
+@keyframes sway{
+  0%,100%{transform:rotate(-3deg)}
+  50%{transform:rotate(3deg)}
+}
+.building-body{
+  width:100%;height:100%;background:linear-gradient(to right,var(--bg-2),rgba(95,228,240,0.1));
+  border-radius:8px;border:2px solid var(--cyan-2)
+}
+.mass-block{
+  position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  width:120px;height:60px;background:linear-gradient(135deg,var(--gold),var(--gold-2));
+  border-radius:8px;box-shadow:0 8px 32px rgba(255,215,107,0.4);
+  display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a0f00
+}
+.spring-visual{
+  position:absolute;top:80px;left:50%;transform:translateX(-50%);
+  width:4px;height:60px;background:repeating-linear-gradient(
+    to bottom,
+    var(--text-dim) 0px,
+    var(--text-dim) 8px,
+    transparent 8px,
+    transparent 12px
+  )
+}
+.force-arrow{
+  position:absolute;right:60px;top:200px;display:flex;flex-direction:column;align-items:center;gap:8px
+}
+.arrow-line{
+  width:3px;height:100px;background:linear-gradient(to bottom,var(--red),transparent);
+  position:relative
+}
+.arrow-line::after{
+  content:"";position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+  border-left:10px solid transparent;border-right:10px solid transparent;border-top:15px solid var(--red)
+}
+.force-label{color:var(--red);font-size:14px;font-weight:600}
+
+.physics-legend{
+  position:absolute;bottom:24px;left:24px;right:24px;
+  display:flex;justify-content:center;gap:40px;font-size:13px;color:var(--text-dim)
+}
+.legend-item{display:flex;align-items:center;gap:8px}
+.legend-color{width:16px;height:16px;border-radius:4px}
+
+/* ============ 页面3: 上海中心 ============ */
+.shanghai{position:relative;height:100%;padding:100px 80px 40px}
+.shanghai-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}
+.shanghai-header h2{font-size:42px;font-weight:700}
+.shanghai-header h2 span{color:var(--gold)}
+.building-stats{display:flex;gap:32px}
+.stat-item{text-align:right}
+.stat-value{font-size:32px;font-weight:800;color:var(--cyan);line-height:1}
+.stat-label{font-size:13px;color:var(--text-dim);margin-top:6px}
+
+.shanghai-content{display:flex;gap:40px;height:calc(100% - 140px)}
+
+/* 建筑剖面图 */
+.tower-section{
+  width:380px;position:relative;background:var(--bg-1);border-radius:20px;
+  border:1px solid var(--line);overflow:hidden;padding:30px
+}
+.tower-svg{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:200px;height:85%}
+.tower-outline{
+  fill:url(#towerGradient);stroke:var(--cyan-2);stroke-width:2
+}
+.damper-zone{
+  fill:rgba(255,215,107,0.25);stroke:var(--gold);stroke-width:2;stroke-dasharray:5,5
+}
+.floor-marker{
+  position:absolute;right:30px;font-size:12px;color:var(--text-dim)
+}
+.floor-126{top:12%}
+.floor-125{top:22%}
+.floor-100{top:45%}
+.floor-50{top:70%}
+
+.damper-detail{
+  position:absolute;top:12%;left:50%;transform:translateX(-50%);
+  width:280px;padding:20px;border-radius:12px;
+  background:rgba(255,215,107,0.1);border:1px solid rgba(255,215,107,0.3)
+}
+.damper-detail h4{font-size:14px;color:var(--gold);margin-bottom:12px}
+.damper-specs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.spec-row{display:flex;justify-content:space-between;font-size:13px}
+.spec-label{color:var(--text-dim)}
+.spec-value{color:var(--text);font-weight:600}
+
+/* 阻尼器可视化 */
+.damper-viz{
+  flex:1;background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
+  position:relative;overflow:hidden;padding:40px
+}
+.viz-title{
+  position:absolute;top:30px;left:40px;font-size:20px;font-weight:700
+}
+.viz-title span{font-size:14px;color:var(--text-dim);font-weight:400;margin-left:12px}
+
+.damper-container{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:500px;height:400px
+}
+
+/* 悬挂系统 */
+.suspension-system{position:relative;width:100%;height:100%}
+.cable-left,.cable-right{
+  position:absolute;top:0;width:3px;height:200px;background:linear-gradient(to bottom,var(--text-dim),var(--bg-2))
+}
+.cable-left{left:80px;transform-origin:top left;animation:cableSwayLeft 5s infinite ease-in-out}
+.cable-right{right:80px;transform-origin:top right;animation:cableSwayRight 5s infinite ease-in-out}
+@keyframes cableSwayLeft{
+  0%,100%{transform:rotate(8deg)}
+  50%{transform:rotate(-8deg)}
+}
+@keyframes cableSwayRight{
+  0%,100%{transform:rotate(-8deg)}
+  50%{transform:rotate(8deg)}
+}
+
+/* 质量块 */
+.mass-swing{
+  position:absolute;top:180px;left:50%;transform:translateX(-50%);
+  width:200px;height:100px;animation:massSway 5s infinite ease-in-out
+}
+@keyframes massSway{
+  0%,100%{transform:translateX(-50%) rotate(-4deg) translateX(-30px)}
+  50%{transform:translateX(-50%) rotate(4deg) translateX(30px)}
+}
+.mass-body{
+  width:100%;height:100%;background:linear-gradient(145deg,#3a3a3a,#2a2a2a);
+  border-radius:12px;border:2px solid #555;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1);
+  display:flex;align-items:center;justify-content:center;position:relative
+}
+.mass-weight{
+  font-size:28px;font-weight:800;color:var(--gold);text-shadow:0 2px 10px rgba(255,215,107,0.3)
+}
+.mass-decoration{
+  position:absolute;inset:8px;border:1px solid rgba(255,255,255,0.1);border-radius:8px
+}
+
+/* 连接点 */
+.connection-point{
+  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  width:24px;height:24px;background:radial-gradient(circle at 30% 30%,#777,#333);
+  border-radius:50%;border:2px solid #555;box-shadow:0 4px 12px rgba(0,0,0,0.4)
+}
+
+/* 减震器 */
+.damper-unit{
+  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+  width:300px;height:80px;display:flex;gap:20px;align-items:center;justify-content:center
+}
+.damper-piston{
+  width:60px;height:100%;background:linear-gradient(to right,#555,#333,#555);
+  border-radius:6px;border:1px solid #666;position:relative
+}
+.damper-cylinder{
+  flex:1;height:70%;background:linear-gradient(to bottom,var(--bg-2),var(--bg-0));
+  border-radius:8px;border:2px solid var(--cyan-2);position:relative;overflow:hidden
+}
+.damper-fluid{
+  position:absolute;inset:4px;background:linear-gradient(90deg,var(--cyan-2),var(--cyan),var(--cyan-2));
+  border-radius:4px;opacity:0.6;animation:fluidMove 3s infinite ease-in-out
+}
+@keyframes fluidMove{
+  0%,100%{transform:translateX(-20px)}
+  50%{transform:translateX(20px)}
+}
+
+/* 状态指示 */
+.status-panel{
+  position:absolute;bottom:30px;left:40px;right:40px;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:20px 30px;background:rgba(255,255,255,0.03);border-radius:12px;
+  border:1px solid var(--line)
+}
+.status-item{display:flex;align-items:center;gap:12px}
+.status-indicator{
+  width:10px;height:10px;border-radius:50%;background:var(--mint);
+  box-shadow:0 0 12px var(--mint);animation:blink 2s infinite
+}
+@keyframes blink{
+  0%,100%{opacity:1}
+  50%{opacity:0.5}
+}
+.status-text{font-size:14px;color:var(--text-dim)}
+.status-text strong{color:var(--text);font-weight:600}
+
+/* ============ 页面4: 阻尼器 ============ */
+.damper{position:relative;height:100%;padding:100px 80px 40px}
+.damper h2{font-size:42px;font-weight:700;margin-bottom:16px}
+.damper h2 span{color:var(--mint)}
+.damper > .subtitle{font-size:16px;color:var(--text-dim);margin-bottom:40px}
+
+.damper-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;height:calc(100% - 140px)}
+
+.damper-card{
+  background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
+  padding:32px;display:flex;flex-direction:column;transition:all .3s ease
+}
+.damper-card:hover{border-color:var(--line-2);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
+.damper-card.featured{border-color:rgba(255,215,107,0.3);background:linear-gradient(180deg,rgba(255,215,107,0.05),var(--bg-1))}
+
+.card-icon{
+  width:56px;height:56px;border-radius:14px;
+  background:linear-gradient(135deg,var(--cyan),var(--cyan-2));
+  display:flex;align-items:center;justify-content:center;margin-bottom:24px;
+  font-size:24px
+}
+.damper-card.featured .card-icon{background:linear-gradient(135deg,var(--gold),var(--gold-2))}
+
+.card-title{font-size:22px;font-weight:700;margin-bottom:12px}
+.card-desc{font-size:14px;color:var(--text-dim);line-height:1.7;flex:1}
+
+.card-specs{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+.spec-item{display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px}
+.spec-item:last-child{margin-bottom:0}
+
+/* ============ 页面5: 应用 ============ */
+.application{position:relative;height:100%;padding:100px 80px 40px}
+.application h2{font-size:42px;font-weight:700;margin-bottom:40px}
+.application h2 span{color:var(--cyan)}
+
+.app-showcase{display:flex;gap:30px;height:calc(100% - 120px)}
+
+.app-card{
+  flex:1;background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
+  overflow:hidden;display:flex;flex-direction:column;transition:all .3s ease
+}
+.app-card:hover{transform:translateY(-8px);border-color:var(--line-2);box-shadow:0 30px 80px rgba(0,0,0,0.5)}
+
+.app-visual{
+  height:200px;position:relative;overflow:hidden
+}
+.app-visual::after{
+  content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent,var(--bg-1))
+}
+
+.bridge-visual{background:linear-gradient(135deg,#1a2a4a,#0d1730);position:relative}
+.bridge-tower{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:20px;height:150px;background:linear-gradient(to right,#3a4a6a,#2a3a5a)
+}
+.bridge-deck{
+  position:absolute;bottom:40px;left:10%;right:10%;height:8px;background:#4a5a7a;border-radius:4px
+}
+.bridge-cables{
+  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
+  width:200px;height:110px;background:repeating-linear-gradient(90deg,transparent,transparent 20px,#5a6a8a 20px,#5a6a8a 22px)
+}
+
+.tower-visual{background:linear-gradient(135deg,#2a1a3a,#0d1730);position:relative}
+.tower-building{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:80px;height:180px;background:linear-gradient(to top,#3a2a4a,#2a1a3a);
+  clip-path:polygon(20% 0%,80% 0%,100% 100%,0% 100%)
+}
+.tower-damper{
+  position:absolute;bottom:120px;left:50%;transform:translateX(-50%);
+  width:40px;height:20px;background:var(--gold);border-radius:4px;
+  box-shadow:0 0 20px rgba(255,215,107,0.5)
+}
+
+.chimney-visual{background:linear-gradient(135deg,#3a2a2a,#0d1730);position:relative}
+.chimney-stack{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:60px;height:180px;background:linear-gradient(to right,#5a4a4a,#4a3a3a);
+  border-radius:30px 30px 0 0
+}
+.chimney-ring{
+  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+  width:80px;height:15px;background:var(--cyan);border-radius:4px;opacity:0.8
+}
+
+.app-content{padding:28px;flex:1;display:flex;flex-direction:column}
+.app-content h3{font-size:20px;font-weight:700;margin-bottom:12px}
+.app-content p{font-size:14px;color:var(--text-dim);line-height:1.7;flex:1}
+
+.app-meta{
+  display:flex;gap:16px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)
+}
+.meta-tag{
+  padding:6px 12px;border-radius:6px;background:rgba(95,228,240,0.1);
+  color:var(--cyan);font-size:12px;font-weight:600
+}
+
+/* ============ 页面6: 优势 ============ */
+.advantage{position:relative;height:100%;padding:100px 80px 40px}
+.advantage h2{font-size:42px;font-weight:700;margin-bottom:40px;text-align:center}
+.advantage h2 span{color:var(--gold)}
+
+.compare-container{
+  display:flex;gap:40px;height:calc(100% - 120px);align-items:center;justify-content:center
+}
+
+.compare-card{
+  width:420px;height:520px;background:var(--bg-1);border-radius:24px;border:2px solid var(--line);
+  padding:40px;display:flex;flex-direction:column;transition:all .3s ease
+}
+.compare-card.optimized{border-color:rgba(78,220,168,0.4);background:linear-gradient(180deg,rgba(78,220,168,0.08),var(--bg-1))}
+.compare-card.optimized:hover{box-shadow:0 30px 80px rgba(78,220,168,0.2)}
+
+.compare-header{
+  text-align:center;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--line)
+}
+.compare-header h3{font-size:24px;font-weight:700;margin-bottom:8px}
+.compare-header .tag{
+  display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600
+}
+.compare-card.traditional .tag{background:rgba(255,107,107,0.15);color:var(--red)}
+.compare-card.optimized .tag{background:rgba(78,220,168,0.15);color:var(--mint)}
+
+.compare-list{flex:1;display:flex;flex-direction:column;gap:16px}
+.compare-item{
+  display:flex;align-items:center;gap:16px;padding:16px;background:rgba(255,255,255,0.03);
+  border-radius:12px
+}
+.compare-icon{
+  width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:18px
+}
+.compare-card.traditional .compare-icon{background:rgba(255,107,107,0.15);color:var(--red)}
+.compare-card.optimized .compare-icon{background:rgba(78,220,168,0.15);color:var(--mint)}
+
+.compare-text{flex:1}
+.compare-text h4{font-size:15px;font-weight:600;margin-bottom:4px}
+.compare-text p{font-size:13px;color:var(--text-dim)}
+
+.compare-vs{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:800;color:#1a0f00;flex-shrink:0
+}
+
+/* ============ 页面7: 数据 ============ */
+.data{position:relative;height:100%;padding:100px 80px 40px}
+.data h2{font-size:42px;font-weight:700;margin-bottom:16px}
+.data h2 span{color:var(--cyan)}
+.data > .subtitle{font-size:16px;color:var(--text-dim);margin-bottom:40px}
+
+.data-dashboard{
+  display:grid;grid-template-columns:1fr 1fr;gap:24px;height:calc(100% - 140px)
+}
+
+.data-panel{
+  background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
+  padding:28px;display:flex;flex-direction:column
+}
+
+.panel-header{
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:20px
+}
+.panel-title{font-size:18px;font-weight:700}
+.panel-badge{
+  padding:6px 12px;border-radius:6px;background:rgba(95,228,240,0.1);
+  color:var(--cyan);font-size:12px;font-weight:600
+}
+
+.chart-container{flex:1;position:relative}
+
+/* 模拟图表 */
+.bar-chart{display:flex;align-items:flex-end;justify-content:space-around;height:100%;padding:20px 0;gap:20px}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:12px}
+.bar{
+  width:100%;background:linear-gradient(to top,var(--cyan-2),var(--cyan));border-radius:6px 6px 0 0;
+  transition:all .3s ease;position:relative
+}
+.bar::after{
+  content:attr(data-value);position:absolute;top:-24px;left:50%;transform:translateX(-50%);
+  font-size:13px;font-weight:700;color:var(--text)
+}
+.bar-item:nth-child(1) .bar{height:45%}
+.bar-item:nth-child(2) .bar{height:72%}
+.bar-item:nth-child(3) .bar{height:60%}
+.bar-item:nth-child(4) .bar{height:85%}
+.bar-item:nth-child(5) .bar{height:55%}
+.bar-label{font-size:12px;color:var(--text-dim);text-align:center}
+
+.line-chart{position:relative;height:100%;padding:20px 0}
+.line-svg{width:100%;height:100%}
+.line-path{
+  fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
+  stroke-dasharray:1000;stroke-dashoffset:1000;animation:drawLine 3s forwards
+}
+@keyframes drawLine{
+  to{stroke-dashoffset:0}
+}
+.line-area{fill:rgba(255,215,107,0.1);stroke:none}
+
+.data-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px}
+.metric-card{
+  padding:20px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid var(--line)
+}
+.metric-value{font-size:28px;font-weight:800;color:var(--gold);line-height:1}
+.metric-label{font-size:13px;color:var(--text-dim);margin-top:6px}
+
+/* ============ 页面8: 展望 ============ */
+.future{position:relative;height:100%;padding:100px 80px 40px}
+.future h2{font-size:42px;font-weight:700;margin-bottom:40px;text-align:center}
+.future h2 span{color:var(--gold)}
+
+.timeline{
+  position:relative;height:calc(100% - 120px);display:flex;align-items:center;justify-content:center;
+  padding:0 60px
+}
+
+.timeline-line{
+  position:absolute;top:50%;left:100px;right:100px;height:3px;
+  background:linear-gradient(to right,var(--cyan-2),var(--cyan),var(--gold),var(--gold-2));
+  border-radius:2px
+}
+
+.timeline-item{
+  position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;
+  text-align:center
+}
+.timeline-item:nth-child(odd){margin-top:-120px}
+.timeline-item:nth-child(even){margin-top:120px}
+
+.timeline-dot{
+  width:24px;height:24px;border-radius:50%;background:var(--bg-0);
+  border:3px solid var(--cyan);box-shadow:0 0 20px rgba(95,228,240,0.5);
+  position:relative;z-index:2
+}
+.timeline-item.active .timeline-dot{border-color:var(--gold);box-shadow:0 0 25px rgba(255,215,107,0.6)}
+
+.timeline-content{
+  width:220px;padding:24px;background:var(--bg-1);border-radius:16px;
+  border:1px solid var(--line);margin-top:20px;transition:all .3s ease
+}
+.timeline-item:hover .timeline-content{border-color:var(--line-2);transform:translateY(-4px)}
+.timeline-year{font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:8px}
+.timeline-item.active .timeline-year{color:var(--gold)}
+.timeline-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.timeline-desc{font-size:13px;color:var(--text-dim);line-height:1.6}
+
+/* ============ 页脚 ============ */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;height:50px;
+  display:flex;align-items:center;justify-content:center;gap:40px;
+  background:linear-gradient(to top,rgba(7,13,28,0.95),rgba(7,13,28,0.6));
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  font-size:13px;color:var(--text-dim);z-index:1000
+}
+.footer span{display:flex;align-items:center;gap:8px}
+.footer strong{color:var(--text);font-weight:600}
+
+/* ============ 响应式 ============ */
+@media(max-width:1920px){
+  html,body{width:100vw;height:100vh}
+  .app{width:100vw;height:100vh}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="bg-grid"></div>
   <div class="bg-noise"></div>
-  <div class="bg-particles" id="particles"></div>
-
-  <!-- ======= Header ======= -->
-  <div class="header">
-    <div class="brand">
-      <div class="brand-mark">
-        <svg viewBox="0 0 32 32" fill="none" stroke="#1b1300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 4 L16 12"/>
-          <circle cx="16" cy="20" r="5"/>
-          <path d="M16 25 L16 28 M10 28 L22 28"/>
-          <path d="M10 12 L22 12"/>
-        </svg>
-      </div>
-      <div class="brand-text">
-        <h1>调谐质量阻尼器</h1>
-        <p>TUNED · MASS · DAMPER · INTERACTIVE</p>
-      </div>
-    </div>
-    <div class="meta">
-      <div class="meta-pill">
-        <span class="live"></span>
-        <b id="chapNum">CHAPTER 01</b>
-        <i id="chapName">历史起源</i>
-      </div>
-      <div class="meta-time" id="metaTime">— · — · —</div>
-    </div>
+  <div class="bg-particles">
+    <span style="left:10%;top:20%;animation-delay:0s"></span>
+    <span style="left:25%;top:60%;animation-delay:2s"></span>
+    <span style="left:40%;top:30%;animation-delay:4s"></span>
+    <span style="left:60%;top:70%;animation-delay:1s"></span>
+    <span style="left:75%;top:40%;animation-delay:3s"></span>
+    <span style="left:90%;top:80%;animation-delay:5s"></span>
   </div>
 
-  <!-- ======= Stage ======= -->
-  <div class="stage">
+  <!-- 导航栏 -->
+  <nav class="nav">
+    <div class="nav-logo">调谐质量阻尼器科普</div>
+    <div class="nav-links">
+      <button class="nav-btn active" data-page="home">首页</button>
+      <button class="nav-btn" data-page="theory">原理</button>
+      <button class="nav-btn" data-page="shanghai">上海中心</button>
+      <button class="nav-btn" data-page="damper">阻尼器</button>
+      <button class="nav-btn" data-page="application">应用</button>
+      <button class="nav-btn" data-page="advantage">优势</button>
+      <button class="nav-btn" data-page="data">数据</button>
+      <button class="nav-btn" data-page="future">展望</button>
+    </div>
+  </nav>
 
-    <!-- ===== Scene 1: 历史起源 ===== -->
-    <div class="scene active" data-scene="1">
-      <div class="scene-head">
-        <div class="scene-title-block">
-          <span class="eyebrow"><span class="num">1</span>HISTORICAL ORIGINS · 1909 → 未来</span>
-          <h2>重量的巧妙运用</h2>
-          <div class="sub">从船舶减摇器 · 到千米摩天楼 · 一段百年发明史</div>
-        </div>
-        <div class="crumb"><span>SECTION</span><b>01 / 05</b><span>FRAHM → MARS</span></div>
+  <!-- 页面1: 首页 -->
+  <section class="page active" id="home">
+    <div class="hero">
+      <div class="hero-badge">🔬 工程科技科普</div>
+      <h1>调谐质量阻尼器<br><span>摩天大楼的定海神针</span></h1>
+      <p>探索上海中心大厦125层、重达1000吨的巨型阻尼器如何守护中国最高建筑<br>抵御台风与地震，让千米高楼在狂风中依然稳如泰山</p>
+      <div class="hero-cta">
+        <button class="btn-primary" onclick="showPage('theory')">探索原理</button>
+        <button class="btn-secondary" onclick="showPage('shanghai')">观看演示</button>
       </div>
+    </div>
+    <div class="hero-visual">
+      <div class="tower-mini">
+        <div class="damper-pulse">阻尼器</div>
+      </div>
+    </div>
+  </section>
 
-      <div class="timeline-wrap">
-        <div class="timeline-axis">
-          <div class="tl-tick" style="left:8%"></div>
-          <div class="tl-tick" style="left:25%"></div>
-          <div class="tl-tick" style="left:42%"></div>
-          <div class="tl-tick" style="left:59%"></div>
-          <div class="tl-tick" style="left:76%"></div>
-          <div class="tl-tick" style="left:93%"></div>
-        </div>
-
-        <div class="tl-node" style="left:0;top:0">
-          <div class="badge">PATENT</div>
-          <div class="year">1909</div>
-          <div class="connector"></div>
-          <div class="ring">
-            <svg viewBox="0 0 32 32"><path d="M4 22 Q16 14 28 22"/><path d="M8 22 L8 28 L24 28 L24 22"/><circle cx="14" cy="12" r="2"/><circle cx="20" cy="10" r="2"/></svg>
+  <!-- 页面2: 原理 -->
+  <section class="page" id="theory">
+    <div class="theory">
+      <div class="theory-left">
+        <h2>调谐质量阻尼器<span>工作原理</span></h2>
+        <p class="subtitle">Tuned Mass Damper (阻尼器) — 建筑减震的核心科技</p>
+        
+        <div class="principle-cards">
+          <div class="p-card">
+            <h3>反相位振动抵消</h3>
+            <p>当建筑因风力或地震产生晃动时，阻尼器会以相反的相位摆动，产生与建筑运动方向相反的惯性力，从而抵消振动能量。</p>
           </div>
-          <div class="name">Frahm 船用减摇器</div>
-          <div class="desc">德国工程师 Hermann Frahm 取得专利，用调谐质量对抗海浪。数学正确，却"沉睡"了 60 年。</div>
-        </div>
-
-        <div class="tl-node" style="left:280px;top:0">
-          <div class="badge">RETROFIT</div>
-          <div class="year">1976</div>
-          <div class="connector"></div>
-          <div class="ring">
-            <svg viewBox="0 0 32 32"><rect x="10" y="4" width="12" height="26" rx="1"/><path d="M12 8 L20 8 M12 12 L20 12 M12 16 L20 16 M12 20 L20 20 M12 24 L20 24"/></svg>
+          <div class="p-card">
+            <h3>频率调谐匹配</h3>
+            <p>阻尼器的质量、弹簧刚度和阻尼系数经过精确计算，使其固有频率与建筑的主振动频率一致，实现共振能量转移。</p>
           </div>
-          <div class="name">波士顿汉考克大厦</div>
-          <div class="desc">改造方案：58 层加装两个 300 吨铅钢箱，浮于润滑钢板上抑制风致振动。</div>
-        </div>
-
-        <div class="tl-node" style="left:560px;top:0">
-          <div class="badge">FIRST · DESIGN</div>
-          <div class="year">1977</div>
-          <div class="connector"></div>
-          <div class="ring">
-            <svg viewBox="0 0 32 32"><path d="M16 4 L6 16 L6 30 L26 30 L26 16 Z"/><rect x="13" y="20" width="6" height="10"/><path d="M10 18 L22 18"/></svg>
+          <div class="p-card">
+            <h3>能量耗散机制</h3>
+            <p>通过液压阻尼器或粘滞阻尼器将机械振动能量转化为热能散发，逐步减小振幅，保护建筑结构安全。</p>
           </div>
-          <div class="name">纽约花旗银行中心</div>
-          <div class="desc">首座从设计之初就配 TMD 的摩天楼——400 吨混凝土块漂浮在油膜上。</div>
-        </div>
-
-        <div class="tl-node" style="left:840px;top:0">
-          <div class="badge">ICONIC</div>
-          <div class="year">2004</div>
-          <div class="connector"></div>
-          <div class="ring">
-            <svg viewBox="0 0 32 32"><path d="M16 2 L10 8 L10 30 L22 30 L22 8 Z"/><circle cx="16" cy="20" r="4"/><path d="M14 8 L18 8"/></svg>
-          </div>
-          <div class="name">台北 101</div>
-          <div class="desc">660 吨金色钢球公开展示，台风地震时人们站在它脚下围观，成为城市的"可见巨人"。</div>
-        </div>
-
-        <div class="tl-node" style="left:1120px;top:0">
-          <div class="badge">EDDY · CURRENT</div>
-          <div class="year">2015</div>
-          <div class="connector"></div>
-          <div class="ring">
-            <svg viewBox="0 0 32 32"><path d="M16 2 C10 10 10 22 16 30 C22 22 22 10 16 2 Z"/><circle cx="16" cy="16" r="3"/></svg>
-          </div>
-          <div class="name">上海中心 · 慧眼</div>
-          <div class="desc">632 米第二高楼。约 1000 吨阻尼器采用电磁涡流，免维护、零电力、寂静运行。</div>
-        </div>
-
-        <div class="tl-node" style="left:1400px;top:0">
-          <div class="badge">FUTURE · MARS</div>
-          <div class="year">未来</div>
-          <div class="connector"></div>
-          <div class="ring">
-            <svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="10"/><path d="M2 16 L6 16 M26 16 L30 16 M16 2 L16 6 M16 26 L16 30"/><circle cx="16" cy="16" r="3" fill="#ffd76b" stroke="none"/></svg>
-          </div>
-          <div class="name">异星之塔</div>
-          <div class="desc">火星殖民地。多用途质量块同时承担水库、辐射屏蔽与热惯性，电磁涡流抗火震尘暴。</div>
         </div>
       </div>
-
-      <div class="s1-cards">
-        <div class="card glow">
-          <div class="card-head"><span class="bar"></span><h3>问题：风涡脱落</h3><span class="tag">CHALLENGE</span></div>
-          <p>高层建筑后方周期性脱落的<b>卡门涡街</b>，会以接近建筑自振频率的节奏推搡它，造成头晕、玻璃震碎、设备掉落——共振是高层最大的隐形敌人。</p>
-        </div>
-        <div class="card glow">
-          <div class="card-head"><span class="bar"></span><h3>液压阻尼的局限</h3><span class="tag">LIMITATION</span></div>
-          <p>维护成本高、密封件老化、油液泄漏与化学变质。在数十年的服役周期里，这些"湿"装置会成为持续的烦恼与停机风险。</p>
-        </div>
-        <div class="card glow">
-          <div class="card-head"><span class="bar"></span><h3>下一个飞跃</h3><span class="tag">SHANGHAI · MARS</span></div>
-          <p>把"湿"换成"干"——只用<b>钕铁硼磁铁、铜板、质量块</b>。无液体、无电力、无接触，让阻尼器与建筑、甚至与殖民地同寿。</p>
+      
+      <div class="theory-right">
+        <div class="physics-diagram">
+          <div class="building-sway">
+            <div class="building-body"></div>
+            <div class="mass-block">阻尼器</div>
+            <div class="spring-visual"></div>
+            <div class="connection-point"></div>
+          </div>
+          <div class="force-arrow">
+            <div class="arrow-line"></div>
+            <div class="force-label">风荷载</div>
+          </div>
+          <div class="physics-legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background:var(--cyan-2)"></div>
+              <span>建筑主体</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background:var(--gold)"></div>
+              <span>阻尼器质量块</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background:var(--red)"></div>
+              <span>外部作用力</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- ===== Scene 2: 原理分析 ===== -->
-    <div class="scene" data-scene="2">
-      <div class="scene-head">
-        <div class="scene-title-block">
-          <span class="eyebrow"><span class="num">2</span>PRINCIPLE · 反节拍 · 共振 · 耗散</span>
-          <h2>原理分析</h2>
-          <div class="sub">两个质量 · 一根弹簧 · 一份"反向节拍"</div>
+  <!-- 页面3: 上海中心 -->
+  <section class="page" id="shanghai">
+    <div class="shanghai">
+      <div class="shanghai-header">
+        <div>
+          <h2>上海中心大厦<span>阻尼器</span></h2>
         </div>
-        <div class="crumb"><span>SECTION</span><b>02 / 05</b><span>m₁ – k₂ – c₂ – m₂</span></div>
+        <div class="building-stats">
+          <div class="stat-item">
+            <div class="stat-value">632<span style="font-size:18px">m</span></div>
+            <div class="stat-label">建筑高度</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">1000<span style="font-size:18px">t</span></div>
+            <div class="stat-label">阻尼器质量</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value">125<span style="font-size:18px">F</span></div>
+            <div class="stat-label">安装楼层</div>
+          </div>
+        </div>
       </div>
-
-      <div class="s2-grid" style="height:calc(100% - 110px)">
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>风涡为什么晃楼？</h3></div>
-            <p>风绕过建筑两侧时交替脱落涡流，对结构施加周期性侧向力。当其频率接近建筑的自振频率 <b>f₁</b>，振幅会被持续放大——共振。</p>
-          </div>
-          <div class="bld-illu">
-            <div class="bld-grid"></div>
-            <div class="wind-label">VORTEX · 卡门涡街</div>
-            <svg class="bld-svg" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid meet">
-              <defs>
-                <linearGradient id="bldG" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stop-color="#3a567f"/>
-                  <stop offset="1" stop-color="#1f3458"/>
-                </linearGradient>
-              </defs>
-              <!-- building -->
-              <rect x="170" y="40" width="80" height="240" fill="url(#bldG)" stroke="#fff" stroke-opacity="0.25" rx="3"/>
-              <g stroke="rgba(95,228,240,0.5)" stroke-width="0.6">
-                <line x1="170" y1="60" x2="250" y2="60"/>
-                <line x1="170" y1="80" x2="250" y2="80"/>
-                <line x1="170" y1="100" x2="250" y2="100"/>
-                <line x1="170" y1="120" x2="250" y2="120"/>
-                <line x1="170" y1="140" x2="250" y2="140"/>
-                <line x1="170" y1="160" x2="250" y2="160"/>
-                <line x1="170" y1="180" x2="250" y2="180"/>
-                <line x1="170" y1="200" x2="250" y2="200"/>
-                <line x1="170" y1="220" x2="250" y2="220"/>
-                <line x1="170" y1="240" x2="250" y2="240"/>
-              </g>
-              <!-- TMD ball -->
-              <g style="transform-origin:210px 60px;animation:swing 3s ease-in-out infinite">
-                <line x1="210" y1="60" x2="210" y2="140" stroke="rgba(255,255,255,0.5)"/>
-                <circle cx="210" cy="146" r="14" fill="url(#ballG2)"/>
-              </g>
-              <defs>
-                <radialGradient id="ballG2" cx="0.3" cy="0.3"><stop offset="0" stop-color="#ffd76b"/><stop offset="1" stop-color="#a76a18"/></radialGradient>
-              </defs>
-              <!-- wind arrows -->
-              <g stroke="#5fe4f0" stroke-width="1.4" fill="none" opacity="0.85">
-                <path d="M30 90 Q60 90 80 100 Q60 110 80 120 Q60 130 80 140 L100 140"/>
-                <path d="M30 160 Q60 160 80 170 Q60 180 80 190 Q60 200 80 210 L100 210"/>
-                <polygon points="100,138 108,140 100,144" fill="#5fe4f0" stroke="none"/>
-                <polygon points="100,208 108,210 100,214" fill="#5fe4f0" stroke="none"/>
-              </g>
-              <!-- vortex eddies behind -->
-              <g stroke="#5fe4f0" stroke-width="1.2" fill="none" opacity="0.5">
-                <circle cx="290" cy="120" r="14"/>
-                <circle cx="310" cy="170" r="10"/>
-                <circle cx="290" cy="220" r="14"/>
-              </g>
-            </svg>
-            <style>@keyframes swing{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}</style>
+      
+      <div class="shanghai-content">
+        <div class="tower-section">
+          <svg class="tower-svg" viewBox="0 0 200 600">
+            <defs>
+              <linearGradient id="towerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#0d1730"/>
+                <stop offset="50%" style="stop-color:#1a2a4a"/>
+                <stop offset="100%" style="stop-color:#0d1730"/>
+              </linearGradient>
+            </defs>
+            <!-- 建筑轮廓 -->
+            <path class="tower-outline" d="M100,20 L140,80 L140,580 L60,580 L60,80 Z"/>
+            <!-- 阻尼器区域高亮 -->
+            <rect class="damper-zone" x="55" y="70" width="90" height="50" rx="5"/>
+            <!-- 楼层线 -->
+            <line x1="60" y1="150" x2="140" y2="150" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
+            <line x1="60" y1="250" x2="140" y2="250" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
+            <line x1="60" y1="350" x2="140" y2="350" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
+            <line x1="60" y1="450" x2="140" y2="450" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
+          </svg>
+          <div class="floor-marker floor-126">126F</div>
+          <div class="floor-marker floor-125">125F · 阻尼器</div>
+          <div class="floor-marker floor-100">100F</div>
+          <div class="floor-marker floor-50">50F</div>
+          
+          <div class="damper-detail">
+            <h4>🎯 阻尼器技术参数</h4>
+            <div class="damper-specs">
+              <div class="spec-row">
+                <span class="spec-label">质量块重量</span>
+                <span class="spec-value">1000吨</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">摆长</span>
+                <span class="spec-value">约7米</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">摆动幅度</span>
+                <span class="spec-value">±2米</span>
+              </div>
+              <div class="spec-row">
+                <span class="spec-label">减振效果</span>
+                <span class="spec-value">降低40%</span>
+              </div>
+            </div>
           </div>
         </div>
-
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>核心模型</h3><span class="tag">2-DOF</span></div>
-            <p>在主结构（质量 <b>m₁</b>，弹簧 <b>k₁</b>）顶部附加一个小质量 <b>m₂</b> 与弹簧 <b>k₂</b>、阻尼 <b>c₂</b>。当辅助质量被调谐至与主结构相同频率，它便会"反节拍"地摇摆——你向左，它向右。</p>
-            <div class="hr"></div>
-            <div class="eq-row">
-              <div>
-                <div class="eq-mass eq-m1">m₁<small>BUILDING</small></div>
-                <div class="eq-label">主结构</div>
-              </div>
-              <div>
-                <div class="eq-spring">
-                  <svg viewBox="0 0 60 18" preserveAspectRatio="none">
-                    <polyline points="0,9 6,3 12,15 18,3 24,15 30,3 36,15 42,3 48,15 54,3 60,9" stroke="#5fe4f0" stroke-width="1.6" fill="none"/>
-                  </svg>
+        
+        <div class="damper-viz">
+          <div class="viz-title">阻尼器实时演示<span>模拟台风作用下的摆动</span></div>
+          
+          <div class="damper-container">
+            <div class="suspension-system">
+              <div class="cable-left"></div>
+              <div class="cable-right"></div>
+              <div class="mass-swing">
+                <div class="mass-body">
+                  <div class="mass-decoration"></div>
+                  <div class="mass-weight">1000t</div>
+                  <div class="connection-point"></div>
                 </div>
-                <div class="eq-label">k₂ 弹簧</div>
-              </div>
-              <div>
-                <div class="eq-damper"></div>
-                <div class="eq-label">c₂ 阻尼</div>
-              </div>
-              <div>
-                <div class="eq-mass eq-m2">m₂<small>TMD</small></div>
-                <div class="eq-label">阻尼器</div>
               </div>
             </div>
-          </div>
-          <div class="formula">
-            f₂ = (1 / 2π) · √( k₂ / m₂ )
-            <small>调谐条件 · f₂ ≈ f₁ · 把振动能量"吸"进副质量</small>
-          </div>
-          <div class="card scope">
-            <div class="card-head"><span class="bar"></span><h3>加速度对比</h3><span class="tag">RESPONSE</span></div>
-            <div class="scope-legend">
-              <span style="color:#ff6b6b"><span class="dot" style="background:#ff6b6b"></span>无 TMD</span>
-              <span style="color:#4ddca8"><span class="dot" style="background:#4ddca8"></span>有 TMD</span>
-            </div>
-            <svg viewBox="0 0 800 100" preserveAspectRatio="none" style="margin-top:18px">
-              <g stroke="rgba(140,180,230,0.10)" stroke-width="0.5">
-                <line x1="0" y1="50" x2="800" y2="50"/>
-                <line x1="0" y1="20" x2="800" y2="20" stroke-dasharray="2,3"/>
-                <line x1="0" y1="80" x2="800" y2="80" stroke-dasharray="2,3"/>
-              </g>
-              <path id="waveA" d="M0,50 Q20,5 40,50 T80,50 T120,50 T160,50 T200,50 T240,50 T280,50 T320,50 T360,50 T400,50 T440,50 T480,50 T520,50 T560,50 T600,50 T640,50 T680,50 T720,50 T760,50 T800,50"
-                stroke="#ff6b6b" stroke-width="1.6" fill="none"/>
-              <path id="waveB" d="M0,50 Q20,15 40,50 Q60,55 80,50 Q100,40 120,50 Q140,53 160,50 Q200,48 240,50 L800,50"
-                stroke="#4ddca8" stroke-width="1.6" fill="none"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>能量去哪了？</h3><span class="tag">FLOW</span></div>
-            <ul class="steps">
-              <li><div class="n">1</div><div class="b"><b>转移：</b>主结构动能转移给副质量块。</div></li>
-              <li><div class="n">2</div><div class="b"><b>错位：</b>副质量以反相位摆动，抵消激励。</div></li>
-              <li><div class="n">3</div><div class="b"><b>耗散：</b>阻尼器把动能转化为热能散去。</div></li>
-              <li><div class="n">4</div><div class="b"><b>静止：</b>建筑回到几乎察觉不到的微动。</div></li>
-            </ul>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>调谐质量比</h3><span class="tag">μ ≈ 1–5%</span></div>
-            <p>典型 TMD 的质量约为主结构的 <b>1%–5%</b>，已足以将顶层加速度减半。质量比越大，吸能能力越强，但占用空间也越大。</p>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>失谐的后果</h3><span class="tag">DETUNING</span></div>
-            <p>若 f₂ 偏离 f₁ 太多，副质量不仅<b>无法减振</b>，反而会在特定频率上<b>放大振动</b>。这就是为什么"调谐"是一切的关键。</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== Scene 3: 上海中心 慧眼 ===== -->
-    <div class="scene" data-scene="3">
-      <div class="scene-head">
-        <div class="scene-title-block">
-          <span class="eyebrow"><span class="num">3</span>SHANGHAI TOWER · 上海中心 632m</span>
-          <h2>上海中心 · 慧眼</h2>
-          <div class="sub">125 层之上 · 一颗千吨的金属心脏 · 电磁涡流式阻尼</div>
-        </div>
-        <div class="crumb"><span>SECTION</span><b>03 / 05</b><span>EYE OF SHANGHAI</span></div>
-      </div>
-
-      <div class="s3-grid" style="height:calc(100% - 110px)">
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>"上海慧眼"是什么？</h3></div>
-            <p>上海中心大厦在 125 层悬挂着世界最大的<b>电磁涡流式</b>调谐质量阻尼器，由 12 根缆绳吊起约 1000 吨钢摆，命名"上海慧眼"。它既是工程装置，也是公共艺术品。</p>
-          </div>
-          <div class="stat">
-            <div><div class="n">632</div><div class="u">METER · 米</div></div>
-            <div class="info"><b>塔高</b><span>世界第二高建筑 · 128 层</span></div>
-          </div>
-          <div class="stat">
-            <div><div class="n">~1000</div><div class="u">TON · 吨</div></div>
-            <div class="info"><b>阻尼器质量</b><span>钢摆 + 钕铁硼永磁阵列</span></div>
-          </div>
-          <div class="stat">
-            <div><div class="n">±2</div><div class="u">METER · 摆幅</div></div>
-            <div class="info"><b>设计行程</b><span>足以抵消 17 级台风</span></div>
-          </div>
-          <div class="stat">
-            <div><div class="n">120°</div><div class="u">TWIST · 螺旋</div></div>
-            <div class="info"><b>立面扭转</b><span>气动外形本身就能降低风涡</span></div>
-          </div>
-        </div>
-
-        <div class="tower-stage">
-          <svg viewBox="0 0 400 760" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <linearGradient id="towerG" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#5fe4f0" stop-opacity="0.85"/>
-                <stop offset="0.6" stop-color="#2a8da0" stop-opacity="0.85"/>
-                <stop offset="1" stop-color="#0d1730"/>
-              </linearGradient>
-              <linearGradient id="ballG3" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#fff1c2"/>
-                <stop offset="0.5" stop-color="#ffd76b"/>
-                <stop offset="1" stop-color="#a76a18"/>
-              </linearGradient>
-              <radialGradient id="haloG" cx="0.5" cy="0.5">
-                <stop offset="0" stop-color="#ffd76b" stop-opacity="0.4"/>
-                <stop offset="1" stop-color="#ffd76b" stop-opacity="0"/>
-              </radialGradient>
-              <filter id="glow"><feGaussianBlur stdDeviation="3"/></filter>
-            </defs>
-            <!-- halo -->
-            <circle cx="200" cy="280" r="120" fill="url(#haloG)"/>
-            <!-- tower outline (twisted) -->
-            <path d="M120,740 L130,460 L150,200 L172,50 L228,50 L250,200 L270,460 L280,740 Z"
-              fill="url(#towerG)" stroke="rgba(255,255,255,0.3)" stroke-width="1.2"/>
-            <!-- twist lines -->
-            <g stroke="rgba(255,255,255,0.18)" stroke-width="0.6" fill="none">
-              <path d="M130,460 Q200,455 270,460"/>
-              <path d="M140,380 Q200,378 260,380"/>
-              <path d="M145,300 Q200,298 255,300"/>
-              <path d="M150,220 Q200,218 250,220"/>
-              <path d="M165,140 Q200,138 235,140"/>
-            </g>
-            <!-- floors hatch -->
-            <g stroke="#5fe4f0" stroke-opacity="0.35" stroke-width="0.4">
-              <line x1="135" y1="420" x2="275" y2="420"/>
-              <line x1="138" y1="380" x2="272" y2="380"/>
-              <line x1="141" y1="340" x2="269" y2="340"/>
-              <line x1="144" y1="300" x2="266" y2="300"/>
-              <line x1="147" y1="260" x2="263" y2="260"/>
-              <line x1="150" y1="220" x2="260" y2="220"/>
-              <line x1="154" y1="180" x2="256" y2="180"/>
-            </g>
-            <!-- 125F chamber -->
-            <rect x="155" y="200" width="90" height="100" fill="rgba(255,215,107,0.10)" stroke="#ffd76b" stroke-width="1.2" stroke-dasharray="3,2"/>
-            <text x="200" y="195" fill="#ffd76b" font-size="9" text-anchor="middle" letter-spacing="2">125F · 慧眼舱</text>
-            <!-- ropes -->
-            <g stroke="rgba(255,255,255,0.7)" stroke-width="0.7">
-              <line x1="168" y1="200" x2="192" y2="240"/>
-              <line x1="178" y1="200" x2="196" y2="240"/>
-              <line x1="188" y1="200" x2="200" y2="240"/>
-              <line x1="232" y1="200" x2="208" y2="240"/>
-              <line x1="222" y1="200" x2="204" y2="240"/>
-              <line x1="212" y1="200" x2="200" y2="240"/>
-            </g>
-            <!-- eye-shaped pendulum -->
-            <g style="transform-origin:200px 240px;animation:pendSwing 3.5s ease-in-out infinite">
-              <path d="M200,240 C175,258 175,278 200,288 C225,278 225,258 200,240Z"
-                fill="url(#ballG3)" stroke="#fff8e1" stroke-width="1.4" filter="url(#glow)"/>
-              <ellipse cx="200" cy="264" rx="10" ry="7" fill="#5a3a10"/>
-              <circle cx="200" cy="264" r="4" fill="#ffd76b"/>
-              <circle cx="201" cy="263" r="1.5" fill="#fff8e1"/>
-            </g>
-            <!-- spire -->
-            <line x1="200" y1="50" x2="200" y2="0" stroke="#fff" stroke-width="1.5"/>
-            <circle cx="200" cy="0" r="3" fill="#ffd76b"/>
-            <!-- ground -->
-            <rect x="50" y="740" width="300" height="20" fill="rgba(255,255,255,0.04)"/>
-            <g stroke="rgba(255,255,255,0.2)" stroke-width="0.4">
-              <line x1="50" y1="740" x2="350" y2="740"/>
-            </g>
-            <text x="200" y="755" fill="#9bb1cf" font-size="9" text-anchor="middle" letter-spacing="3">SHANGHAI · 陆家嘴</text>
-          </svg>
-          <div class="spec-pin p1"><b>顶 632 m</b>风荷载最大</div>
-          <div class="spec-pin p2"><b>125 层</b>慧眼悬挂位置</div>
-          <div class="spec-pin p3"><b>±2 m 摆幅</b>反相位运动</div>
-          <div class="spec-pin p4"><b>地基 86 m</b>桩基入岩盘</div>
-          <style>@keyframes pendSwing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}</style>
-        </div>
-
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>为什么不用油？</h3><span class="tag">DRY · vs · WET</span></div>
-            <p style="color:#ff8a8a">液压方案：维护繁重 · 数十年后油液变质 · 密封件泄漏 · 必须定期维修。</p>
-            <p style="margin-top:6px;color:#4ddca8">电磁涡流：钕铁硼永磁体 + 铜板。零电力、零接触、零流体、几乎免维护。</p>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>涡流效应</h3><span class="tag">EDDY · CURRENT</span></div>
-            <div class="eddy">
-              <div class="eddy-plate"></div>
-              <div class="eddy-mag"></div>
-              <div class="eddy-curl c1"></div>
-              <div class="eddy-curl c2"></div>
-              <div class="eddy-arr">N→S · 永磁滑过铜板</div>
-            </div>
-            <p style="margin-top:8px">导体在磁场中运动 → 感应出涡流 → 产生反向磁场 → 阻碍运动 → 动能化作热能。</p>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>居民体验</h3><span class="tag">2019 · 利奇马</span></div>
-            <p>利奇马台风期间，"慧眼"将顶层加速度降低<b>近一半</b>，远低于人体感知阈值。在 581 米高的观光厅，游客可近距离观看这座<b>机械节拍器</b>。</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== Scene 4: 装置实践 ===== -->
-    <div class="scene" data-scene="4">
-      <div class="scene-head">
-        <div class="scene-title-block">
-          <span class="eyebrow"><span class="num">4</span>HANDS-ON · 桌面实验</span>
-          <h2>装置实践</h2>
-          <div class="sub">用矿泉水瓶 + 配重 · 搭一个能"看得见"的桌面 TMD</div>
-        </div>
-        <div class="crumb"><span>SECTION</span><b>04 / 05</b><span>BUILD · TUNE · TEST</span></div>
-      </div>
-
-      <div class="s4-grid" style="height:calc(100% - 110px)">
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>实验目标</h3></div>
-            <p>让一个高瘦的"塔模型"在外力激励下晃动，然后在其顶部加上一个可调节的<b>水瓶钟摆</b>，亲眼看到振幅被显著减弱。</p>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>材料清单</h3><span class="tag">BOM</span></div>
-            <div class="materials">
-              <div class="mat"><svg viewBox="0 0 32 32"><path d="M14 4 L18 4 L18 8 L20 10 L20 28 L12 28 L12 10 L14 8 Z"/></svg><b>矿泉水瓶</b><span>500 ml 一只</span></div>
-              <div class="mat"><svg viewBox="0 0 32 32"><circle cx="16" cy="20" r="8"/><path d="M12 12 L20 12 L18 8 L14 8 Z"/></svg><b>配重物</b><span>沙 / 硬币</span></div>
-              <div class="mat"><svg viewBox="0 0 32 32"><path d="M4 6 C12 14 20 14 28 6 M4 16 C12 24 20 24 28 16 M4 26 C12 30 20 30 28 26"/></svg><b>细绳 / 鱼线</b><span>约 50 cm</span></div>
-              <div class="mat"><svg viewBox="0 0 32 32"><rect x="4" y="14" width="24" height="4"/><path d="M8 14 L8 10 M14 14 L14 8 M20 14 L20 10 M26 14 L26 8"/></svg><b>纸板尺</b><span>当塔身</span></div>
-              <div class="mat"><svg viewBox="0 0 32 32"><rect x="6" y="6" width="20" height="20" rx="2"/><path d="M10 14 L22 14 M10 18 L22 18"/></svg><b>胶带 · 回形针</b><span>固定 / 悬挂</span></div>
-              <div class="mat"><svg viewBox="0 0 32 32"><path d="M6 28 L16 4 L26 28 Z"/><path d="M6 28 L26 28"/></svg><b>支架</b><span>书 / 文具盒</span></div>
+            
+            <div class="damper-unit">
+              <div class="damper-piston"></div>
+              <div class="damper-cylinder">
+                <div class="damper-fluid"></div>
+              </div>
+              <div class="damper-piston"></div>
             </div>
           </div>
-          <div class="tip">
-            <b>💡 调谐才是灵魂</b>
-            <p>想让 TMD 起作用，水瓶钟摆的<b>摆动周期</b>必须接近塔模型的<b>晃动周期</b>。周期不对，TMD 不仅没用，还可能"添乱"。</p>
-          </div>
-        </div>
-
-        <div class="exp-stage">
-          <div class="exp-grid"></div>
-          <svg viewBox="0 0 400 600" preserveAspectRatio="xMidYMid meet">
-            <defs>
-              <linearGradient id="towerG2" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#5fe4f0" stop-opacity="0.8"/>
-                <stop offset="1" stop-color="#1f3458"/>
-              </linearGradient>
-              <linearGradient id="bottleG" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0" stop-color="#a0d8f0" stop-opacity="0.7"/>
-                <stop offset="1" stop-color="#5fe4f0" stop-opacity="0.4"/>
-              </linearGradient>
-            </defs>
-            <!-- ground -->
-            <rect x="50" y="540" width="300" height="14" fill="#5b3a1f" rx="2"/>
-            <line x1="50" y1="540" x2="350" y2="540" stroke="rgba(255,255,255,0.2)"/>
-            <!-- tower -->
-            <rect x="170" y="200" width="60" height="340" fill="url(#towerG2)" stroke="rgba(255,255,255,0.3)" rx="3"/>
-            <g stroke="rgba(95,228,240,0.4)" stroke-width="0.5">
-              <line x1="170" y1="240" x2="230" y2="240"/>
-              <line x1="170" y1="280" x2="230" y2="280"/>
-              <line x1="170" y1="320" x2="230" y2="320"/>
-              <line x1="170" y1="360" x2="230" y2="360"/>
-              <line x1="170" y1="400" x2="230" y2="400"/>
-              <line x1="170" y1="440" x2="230" y2="440"/>
-              <line x1="170" y1="480" x2="230" y2="480"/>
-            </g>
-            <!-- support frame -->
-            <line x1="110" y1="200" x2="110" y2="540" stroke="#8a6a3a" stroke-width="3"/>
-            <line x1="290" y1="200" x2="290" y2="540" stroke="#8a6a3a" stroke-width="3"/>
-            <line x1="110" y1="200" x2="290" y2="200" stroke="#8a6a3a" stroke-width="3"/>
-            <!-- mounting -->
-            <circle cx="200" cy="200" r="4" fill="#ffd76b"/>
-            <!-- pendulum -->
-            <g style="transform-origin:200px 200px;animation:bottleSwing 2.4s ease-in-out infinite">
-              <line x1="200" y1="200" x2="200" y2="260" stroke="rgba(255,255,255,0.6)"/>
-              <!-- bottle -->
-              <rect x="180" y="260" width="40" height="80" rx="6" fill="url(#bottleG)" stroke="rgba(255,255,255,0.5)"/>
-              <rect x="190" y="252" width="20" height="10" fill="#3ddc97"/>
-              <text x="200" y="306" fill="#fff" font-size="10" text-anchor="middle">H₂O</text>
-              <line x1="180" y1="320" x2="220" y2="320" stroke="rgba(255,255,255,0.3)"/>
-            </g>
-            <style>@keyframes bottleSwing{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(10deg)}}</style>
-            <!-- ruler dimensions -->
-            <g stroke="#ffd76b" stroke-width="0.6" fill="none">
-              <line x1="60" y1="260" x2="60" y2="340"/>
-              <line x1="55" y1="260" x2="65" y2="260"/>
-              <line x1="55" y1="340" x2="65" y2="340"/>
-            </g>
-            <text x="70" y="305" fill="#ffd76b" font-size="9">L · 摆长</text>
-            <g stroke="#ffd76b" stroke-width="0.6">
-              <line x1="340" y1="200" x2="340" y2="540"/>
-              <line x1="335" y1="200" x2="345" y2="200"/>
-              <line x1="335" y1="540" x2="345" y2="540"/>
-            </g>
-            <text x="350" y="370" fill="#ffd76b" font-size="9">塔身 H</text>
-          </svg>
-          <div class="exp-note n1"><b>横梁 · 悬挂点</b>固定回形针</div>
-          <div class="exp-note n2"><b>m₂ · 配重水瓶</b>调节装沙量</div>
-          <div class="exp-note n3"><b>m₁ · 塔模型</b>纸卷或塑料尺</div>
-          <div class="label-corner">EXPERIMENT 04 · DESKTOP TMD</div>
-        </div>
-
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>组装与调试</h3><span class="tag">6 STEPS</span></div>
-            <ul class="steps">
-              <li><div class="n">1</div><div class="b"><b>制作塔身：</b>把 A4 纸板卷成约 30 cm 高的细长方筒，底端用胶带固定在桌面。</div></li>
-              <li><div class="n">2</div><div class="b"><b>测定周期 T₁：</b>轻拨塔顶，秒表记 10 次自由振动时间 ÷ 10。</div></li>
-              <li><div class="n">3</div><div class="b"><b>配重水瓶：</b>装沙至 20–50 g（约塔身的 2–5 %）。</div></li>
-              <li><div class="n">4</div><div class="b"><b>调谐摆长：</b>用 T = 2π√(L/g) 反推 L，使 T₂ ≈ T₁；通常 L ≈ 4–10 cm。</div></li>
-              <li><div class="n">5</div><div class="b"><b>悬挂：</b>用细绳挂在塔顶横梁，保持自由摆动。</div></li>
-              <li><div class="n">6</div><div class="b"><b>对比实验：</b>有/无水瓶分别施加相同位移，观察衰减时间。</div></li>
-            </ul>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>预期现象</h3><span class="tag">EXPECTED</span></div>
-            <p>无 TMD 时塔会持续晃动 <b>10 秒以上</b>；挂上调谐好的水瓶后，<b>2–4 秒</b>内就基本静止——副质量在悄悄地"反方向"摆动。</p>
-          </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>变量实验</h3><span class="tag">EXPLORE</span></div>
-            <p>试着改变水瓶装沙量、改变绳长，观察"调谐失误"时会发生什么——它会变成新的振源，把塔晃得更厉害。</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== Scene 5: 火星 ===== -->
-    <div class="scene" data-scene="5">
-      <div class="s5-bg"></div>
-      <div class="s5-stars">
-        <span style="left:8%;top:8%"></span>
-        <span style="left:22%;top:14%;animation-delay:.6s"></span>
-        <span style="left:38%;top:6%;animation-delay:1.2s"></span>
-        <span style="left:52%;top:12%;animation-delay:.3s"></span>
-        <span style="left:68%;top:9%;animation-delay:1.8s"></span>
-        <span style="left:82%;top:14%;animation-delay:.9s"></span>
-        <span style="left:92%;top:6%;animation-delay:2.4s"></span>
-        <span style="left:5%;top:18%;animation-delay:1.5s"></span>
-        <span style="left:48%;top:20%;animation-delay:2.1s"></span>
-      </div>
-
-      <div class="scene-head">
-        <div class="scene-title-block">
-          <span class="eyebrow" style="border-color:rgba(255,155,84,0.5)"><span class="num" style="background:var(--gold-2)">5</span>FUTURE · MARS COLONY · 异星之塔</span>
-          <h2>移民火星时的 TMD</h2>
-          <div class="sub">抗火震 · 抗尘暴 · 免维护数百年 · 一物多用</div>
-        </div>
-        <div class="crumb"><span>SECTION</span><b>05 / 05</b><span>HABITAT · TOWER · 01</span></div>
-      </div>
-
-      <div class="s5-grid" style="height:calc(100% - 110px)">
-        <div class="col">
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>火星给工程师的难题</h3></div>
-            <p>稀薄但极速的<b>尘暴</b>、低至 -125 ℃ 的夜温、不规律的<b>火震</b>，以及极少的人手和零件——任何依赖油液和密封的装置都会失败。</p>
-          </div>
-          <div class="vs-grid">
-            <div class="vs earth">
-              <h4 style="color:#5fe4f0">🌍 地球 · 上海慧眼</h4>
-              <ul>
-                <li>温度：−5 ~ 40 ℃</li>
-                <li>大气：1 atm</li>
-                <li>风：台风 60 m/s</li>
-                <li>电力：随时供应</li>
-                <li>维护：有专业团队</li>
-              </ul>
+          
+          <div class="status-panel">
+            <div class="status-item">
+              <div class="status-indicator"></div>
+              <div class="status-text">系统状态: <strong>正常运行</strong></div>
             </div>
-            <div class="vs mars">
-              <h4 style="color:#ff9b54">🔴 火星 · 异星之塔</h4>
-              <ul>
-                <li>温度：−125 ~ 20 ℃</li>
-                <li>大气：~0.006 atm</li>
-                <li>风：高速尘暴</li>
-                <li>电力：极宝贵</li>
-                <li>维护：几近为零</li>
-              </ul>
+            <div class="status-item">
+              <div class="status-text">当前风速: <strong>12级台风</strong></div>
+            </div>
+            <div class="status-item">
+              <div class="status-text">减振效率: <strong>42%</strong></div>
             </div>
           </div>
-          <div class="card">
-            <div class="card-head"><span class="bar"></span><h3>为什么仍要 TMD？</h3></div>
-            <p>火震虽频率低，但<b>持续时间长</b>；尘暴对高瘦的栖息塔会产生类似风涡的周期激励。<b>被动式 TMD 不需要电</b>就能工作，最适合"无人值守"的殖民地基础设施。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页面4: 阻尼器 -->
+  <section class="page" id="damper">
+    <div class="damper">
+      <h2>世界著名<span>阻尼器</span></h2>
+      <p class="subtitle">全球超高层建筑的减震守护者</p>
+      
+      <div class="damper-grid">
+        <div class="damper-card featured">
+          <div class="card-icon">🏢</div>
+          <div class="card-title">上海中心大厦</div>
+          <div class="card-desc">世界最大的电涡流阻尼器，质量达1000吨，安装于125-126层之间，采用创新的电涡流阻尼技术。</div>
+          <div class="card-specs">
+            <div class="spec-item">
+              <span>质量</span>
+              <span style="color:var(--gold);font-weight:700">1000吨</span>
+            </div>
+            <div class="spec-item">
+              <span>类型</span>
+              <span>电涡流阻尼器</span>
+            </div>
+            <div class="spec-item">
+              <span>减振效果</span>
+              <span>40%</span>
+            </div>
           </div>
         </div>
-
-        <div class="mars-stage">
-          <div class="dust" id="dust"></div>
-          <div class="mars-tower-wrap">
-            <svg viewBox="0 0 120 340" preserveAspectRatio="xMidYMid meet">
-              <defs>
-                <linearGradient id="mTowerG" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stop-color="#dde2e8"/>
-                  <stop offset="0.6" stop-color="#a0a8b0"/>
-                  <stop offset="1" stop-color="#5a606a"/>
-                </linearGradient>
-                <linearGradient id="capG" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0" stop-color="#5fe4f0"/>
-                  <stop offset="1" stop-color="#2a8da0"/>
-                </linearGradient>
-                <radialGradient id="haloM" cx="0.5" cy="0.5">
-                  <stop offset="0" stop-color="#ffd76b" stop-opacity="0.5"/>
-                  <stop offset="1" stop-color="#ffd76b" stop-opacity="0"/>
-                </radialGradient>
-              </defs>
-              <circle cx="60" cy="60" r="50" fill="url(#haloM)"/>
-              <!-- tower body -->
-              <path d="M30,340 L36,80 L48,30 L72,30 L84,80 L90,340 Z" fill="url(#mTowerG)" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
-              <!-- water tank top -->
-              <rect x="42" y="20" width="36" height="20" rx="3" fill="url(#capG)" stroke="#fff" stroke-width="0.6"/>
-              <line x1="42" y1="28" x2="78" y2="28" stroke="rgba(255,255,255,0.5)" stroke-dasharray="2,2"/>
-              <text x="60" y="35" fill="#fff" font-size="6" text-anchor="middle" letter-spacing="1">H₂O · TMD</text>
-              <!-- antenna -->
-              <line x1="60" y1="20" x2="60" y2="2" stroke="#fff" stroke-width="0.8"/>
-              <circle cx="60" cy="2" r="1.5" fill="#ffd76b"/>
-              <!-- windows -->
-              <g fill="#5fe4f0" opacity="0.85">
-                <rect x="55" y="80" width="10" height="6"/>
-                <rect x="55" y="100" width="10" height="6"/>
-                <rect x="55" y="120" width="10" height="6"/>
-                <rect x="55" y="140" width="10" height="6"/>
-                <rect x="55" y="160" width="10" height="6"/>
-                <rect x="55" y="180" width="10" height="6"/>
-                <rect x="55" y="200" width="10" height="6"/>
-                <rect x="55" y="220" width="10" height="6"/>
-              </g>
-              <!-- ribs -->
-              <g stroke="rgba(0,0,0,0.4)" stroke-width="0.5">
-                <line x1="36" y1="80" x2="84" y2="80"/>
-                <line x1="38" y1="160" x2="82" y2="160"/>
-                <line x1="40" y1="240" x2="80" y2="240"/>
-                <line x1="42" y1="320" x2="78" y2="320"/>
-              </g>
-              <!-- magnetic field hint at top -->
-              <g stroke="#ffd76b" stroke-width="0.6" fill="none" opacity="0.7">
-                <path d="M40,40 Q60,30 80,40"/>
-                <path d="M36,46 Q60,32 84,46"/>
-                <path d="M32,52 Q60,34 88,52"/>
-              </g>
-            </svg>
+        
+        <div class="damper-card">
+          <div class="card-icon">🌆</div>
+          <div class="card-title">台北101大厦</div>
+          <div class="card-desc">世界首个向公众开放的巨型阻尼器，重达660吨，悬挂于87-92层之间，已成为台北地标景点。</div>
+          <div class="card-specs">
+            <div class="spec-item">
+              <span>质量</span>
+              <span style="color:var(--cyan);font-weight:700">660吨</span>
+            </div>
+            <div class="spec-item">
+              <span>类型</span>
+              <span>摆式阻尼器</span>
+            </div>
+            <div class="spec-item">
+              <span>直径</span>
+              <span>5.5米</span>
+            </div>
           </div>
-          <!-- ground craters -->
-          <div style="position:absolute;left:8%;bottom:8%;width:90px;height:24px;background:radial-gradient(ellipse,rgba(0,0,0,0.55),transparent 70%);border-radius:50%"></div>
-          <div style="position:absolute;right:12%;bottom:6%;width:70px;height:18px;background:radial-gradient(ellipse,rgba(0,0,0,0.55),transparent 70%);border-radius:50%"></div>
-          <div style="position:absolute;left:40%;bottom:4%;width:50px;height:14px;background:radial-gradient(ellipse,rgba(0,0,0,0.55),transparent 70%);border-radius:50%"></div>
-          <!-- floating astronaut figure -->
-          <div style="position:absolute;left:15%;bottom:30%;width:18px;height:30px;background:linear-gradient(180deg,#fff,#ccc);border-radius:50% 50% 30% 30%"></div>
-
-          <div class="spec-pin" style="top:6%;left:5%"><b>栖息之塔 01</b>火星殖民地原型</div>
-          <div class="spec-pin" style="top:32%;right:5%"><b>顶部水箱</b>同时充当 TMD 质量块</div>
-          <div class="spec-pin" style="bottom:38%;left:5%"><b>钕铁硼磁阵</b>低温真空稳定</div>
-          <div class="spec-pin" style="bottom:6%;right:5%"><b>静止 · 安全 · 可持续</b></div>
         </div>
-
-        <div class="col">
-          <div class="feat">
-            <div class="fi"><svg viewBox="0 0 24 24"><path d="M12 3 C7 10 5 14 5 17 a7 7 0 0 0 14 0 c0 -3 -2 -7 -7 -14 Z"/></svg></div>
-            <div class="fb"><b>多用途质量块 ① 水库</b><span>把 TMD 做成水箱——殖民地的饮用水储备同时充当 800 吨级配重，一物多用。</span></div>
-          </div>
-          <div class="feat">
-            <div class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M5 19 L7 17 M17 7 L19 5"/></svg></div>
-            <div class="fb"><b>多用途质量块 ② 辐射屏蔽</b><span>外层灌入再生水冰与铁矿渣，对宇宙射线提供生物等效辐射屏蔽，保护核心舱。</span></div>
-          </div>
-          <div class="feat">
-            <div class="fi"><svg viewBox="0 0 24 24"><path d="M12 3 L12 14"/><circle cx="12" cy="17" r="4"/><path d="M9 8 L15 8 M9 11 L15 11"/></svg></div>
-            <div class="fb"><b>多用途质量块 ③ 热惯性</b><span>巨大热惯性平滑昼夜温差 (−125 ℃ → +20 ℃)，让居住区温度波动减半。</span></div>
-          </div>
-          <div class="feat">
-            <div class="fi"><svg viewBox="0 0 24 24"><path d="M8 3 L8 13 a4 4 0 0 0 8 0 L16 3"/><path d="M5 3 L11 3 M13 3 L19 3 M5 21 L19 21"/></svg></div>
-            <div class="fb"><b>电磁涡流阻尼</b><span>钕铁硼永磁体在低温真空里反而更稳定，几乎不退磁。无液体、无密封、无电力。</span></div>
-          </div>
-          <div class="feat">
-            <div class="fi"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12 L21 12 M12 3 a14 14 0 0 1 0 18 a14 14 0 0 1 0 -18"/></svg></div>
-            <div class="fb"><b>免维护 200 年</b><span>无运动接触面，无油液老化。距地球数亿公里，仍能持续运行——这就是被动式之美。</span></div>
+        
+        <div class="damper-card">
+          <div class="card-icon">🗼</div>
+          <div class="card-title">深圳平安金融中心</div>
+          <div class="card-desc">采用双阻尼器系统，总质量达1000吨，针对深圳地区台风频发的气候特点专门设计。</div>
+          <div class="card-specs">
+            <div class="spec-item">
+              <span>质量</span>
+              <span style="color:var(--cyan);font-weight:700">500吨×2</span>
+            </div>
+            <div class="spec-item">
+              <span>类型</span>
+              <span>液压阻尼器</span>
+            </div>
+            <div class="spec-item">
+              <span>安装高度</span>
+              <span>114层</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-  </div>
+  <!-- 页面5: 应用 -->
+  <section class="page" id="application">
+    <div class="application">
+      <h2>阻尼器<span>应用领域</span></h2>
+      
+      <div class="app-showcase">
+        <div class="app-card">
+          <div class="app-visual bridge-visual">
+            <div class="bridge-tower"></div>
+            <div class="bridge-deck"></div>
+            <div class="bridge-cables"></div>
+          </div>
+          <div class="app-content">
+            <h3>大跨度桥梁</h3>
+            <p>应用于悬索桥、斜拉桥等大型桥梁结构，抑制风致振动和涡激振动，防止桥梁发生颤振失稳。</p>
+            <div class="app-meta">
+              <span class="meta-tag">悬索桥</span>
+              <span class="meta-tag">斜拉桥</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="app-card">
+          <div class="app-visual tower-visual">
+            <div class="tower-building"></div>
+            <div class="tower-damper"></div>
+          </div>
+          <div class="app-content">
+            <h3>超高层建筑</h3>
+            <p>300米以上的摩天大楼标配，有效降低风荷载引起的舒适度问题，减少结构疲劳损伤。</p>
+            <div class="app-meta">
+              <span class="meta-tag">摩天大楼</span>
+              <span class="meta-tag">地标建筑</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="app-card">
+          <div class="app-visual chimney-visual">
+            <div class="chimney-stack"></div>
+            <div class="chimney-ring"></div>
+          </div>
+          <div class="app-content">
+            <h3>工业设施</h3>
+            <p>用于发电厂烟囱、冷却塔、电视塔等高耸结构，抵御强风和地震作用，保障工业安全。</p>
+            <div class="app-meta">
+              <span class="meta-tag">烟囱</span>
+              <span class="meta-tag">冷却塔</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!-- ======= Bottom Nav ======= -->
-  <div class="nav">
-    <div class="nav-item active" data-target="1">
-      <div class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7 L12 12 L16 14"/></svg></div>
-      <div class="ni-txt"><span class="ni-num">CHAPTER 01</span><span class="ni-name">历史起源</span></div>
-      <span class="ni-arrow">›</span>
+  <!-- 页面6: 优势 -->
+  <section class="page" id="advantage">
+    <div class="advantage">
+      <h2>采用阻尼器的<span>技术优势</span></h2>
+      
+      <div class="compare-container">
+        <div class="compare-card traditional">
+          <div class="compare-header">
+            <h3>传统结构加强方案</h3>
+            <div class="tag">高成本 · 低效率</div>
+          </div>
+          <div class="compare-list">
+            <div class="compare-item">
+              <div class="compare-icon">⚠️</div>
+              <div class="compare-text">
+                <h4>材料成本高昂</h4>
+                <p>需增加30-50%结构材料用量</p>
+              </div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-icon">⚠️</div>
+              <div class="compare-text">
+                <h4>建筑自重增加</h4>
+                <p>导致地基和基础成本上升</p>
+              </div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-icon">⚠️</div>
+              <div class="compare-text">
+                <h4>空间利用率低</h4>
+                <p>厚重的结构构件占用使用面积</p>
+              </div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-icon">⚠️</div>
+              <div class="compare-text">
+                <h4>舒适度难以保证</h4>
+                <p>人体仍能感知明显晃动</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="compare-vs">VS</div>
+        
+        <div class="compare-card optimized">
+          <div class="compare-header">
+            <h3>阻尼器减震方案</h3>
+            <div class="tag">高效 · 经济 · 智能</div>
+          </div>
+          <div class="compare-list">
+            <div class="compare-item">
+              <div class="compare-icon">✓</div>
+              <div class="compare-text">
+                <h4>成本降低40%</h4>
+                <p>减少结构材料用量，优化造价</p>
+              </div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-icon">✓</div>
+              <div class="compare-text">
+                <h4>减振效果显著</h4>
+                <p>可降低振动幅度30-50%</p>
+              </div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-icon">✓</div>
+              <div class="compare-text">
+                <h4>提升居住舒适度</h4>
+                <p>加速度降低，人体无感知</p>
+              </div>
+            </div>
+            <div class="compare-item">
+              <div class="compare-icon">✓</div>
+              <div class="compare-text">
+                <h4>全生命周期受益</h4>
+                <p>保护结构，延长建筑寿命</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="nav-item" data-target="2">
-      <div class="ni-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2 L12 5 M12 19 L12 22 M2 12 L5 12 M19 12 L22 12 M5 5 L7 7 M17 17 L19 19 M5 19 L7 17 M17 7 L19 5"/></svg></div>
-      <div class="ni-txt"><span class="ni-num">CHAPTER 02</span><span class="ni-name">原理分析</span></div>
-      <span class="ni-arrow">›</span>
+  </section>
+
+  <!-- 页面7: 数据 -->
+  <section class="page" id="data">
+    <div class="data">
+      <h2>阻尼器<span>性能数据</span></h2>
+      <p class="subtitle">上海中心大厦阻尼器实际运行监测数据</p>
+      
+      <div class="data-dashboard">
+        <div class="data-panel">
+          <div class="panel-header">
+            <div class="panel-title">不同风级下减振效果</div>
+            <div class="panel-badge">实测数据</div>
+          </div>
+          <div class="chart-container">
+            <div class="bar-chart">
+              <div class="bar-item">
+                <div class="bar" data-value="25%"></div>
+                <div class="bar-label">6级风</div>
+              </div>
+              <div class="bar-item">
+                <div class="bar" data-value="35%"></div>
+                <div class="bar-label">8级风</div>
+              </div>
+              <div class="bar-item">
+                <div class="bar" data-value="42%"></div>
+                <div class="bar-label">10级风</div>
+              </div>
+              <div class="bar-item">
+                <div class="bar" data-value="48%"></div>
+                <div class="bar-label">12级风</div>
+              </div>
+              <div class="bar-item">
+                <div class="bar" data-value="55%"></div>
+                <div class="bar-label">14级风</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="data-panel">
+          <div class="panel-header">
+            <div class="panel-title">实时振动监测</div>
+            <div class="panel-badge">实时</div>
+          </div>
+          <div class="chart-container">
+            <div class="line-chart">
+              <svg class="line-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" style="stop-color:rgba(255,215,107,0.3)"/>
+                    <stop offset="100%" style="stop-color:rgba(255,215,107,0)"/>
+                  </linearGradient>
+                </defs>
+                <path class="line-area" d="M0,150 Q50,140 100,130 T200,100 T300,80 T400,60 L400,200 L0,200 Z"/>
+                <path class="line-path" d="M0,150 Q50,140 100,130 T200,100 T300,80 T400,60"/>
+              </svg>
+            </div>
+          </div>
+          <div class="data-metrics">
+            <div class="metric-card">
+              <div class="metric-value">0.8<span style="font-size:16px">m/s²</span></div>
+              <div class="metric-label">当前加速度</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value">±0.3<span style="font-size:16px">m</span></div>
+              <div class="metric-label">阻尼器摆幅</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="nav-item" data-target="3">
-      <div class="ni-ico"><svg viewBox="0 0 24 24"><path d="M6 21 L6 6 L12 3 L18 6 L18 21 Z"/><path d="M9 9 L9 12 M9 14 L9 17 M15 9 L15 12 M15 14 L15 17"/></svg></div>
-      <div class="ni-txt"><span class="ni-num">CHAPTER 03</span><span class="ni-name">上海慧眼</span></div>
-      <span class="ni-arrow">›</span>
+  </section>
+
+  <!-- 页面8: 展望 -->
+  <section class="page" id="future">
+    <div class="future">
+      <h2>阻尼器技术<span>未来展望</span></h2>
+      
+      <div class="timeline">
+        <div class="timeline-line"></div>
+        
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-year">2020-2025</div>
+            <div class="timeline-title">智能化升级</div>
+            <div class="timeline-desc">引入AI算法实时优化阻尼参数，根据风速、地震波自动调整最佳工作状态</div>
+          </div>
+        </div>
+        
+        <div class="timeline-item active">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-year">2025-2030</div>
+            <div class="timeline-title">多物理场耦合</div>
+            <div class="timeline-desc">整合风工程、地震工程、结构健康监测，实现多灾害协同防护</div>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-year">2030-2035</div>
+            <div class="timeline-title">新材料应用</div>
+            <div class="timeline-desc">磁流变材料、形状记忆合金等智能材料应用于下一代阻尼系统</div>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-year">2035+</div>
+            <div class="timeline-title">城市级防护网络</div>
+            <div class="timeline-desc">建筑群协同减震系统，构建智慧城市地震/风灾防护网络</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="nav-item" data-target="4">
-      <div class="ni-ico"><svg viewBox="0 0 24 24"><path d="M9 3 L15 3 L15 9 L19 17 a3 3 0 0 1 -3 4 L8 21 a3 3 0 0 1 -3 -4 L9 9 Z"/></svg></div>
-      <div class="ni-txt"><span class="ni-num">CHAPTER 04</span><span class="ni-name">装置实践</span></div>
-      <span class="ni-arrow">›</span>
-    </div>
-    <div class="nav-item" data-target="5">
-      <div class="ni-ico"><svg viewBox="0 0 24 24"><path d="M12 2 C7 8 7 16 12 22 C17 16 17 8 12 2 Z"/><circle cx="12" cy="10" r="2"/></svg></div>
-      <div class="ni-txt"><span class="ni-num">CHAPTER 05</span><span class="ni-name">移民火星</span></div>
-      <span class="ni-arrow">›</span>
-    </div>
-  </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="footer">
+    <span>🔧 调谐质量阻尼器科普展示</span>
+    <span>📊 数据来源: 上海中心大厦、台北101等公开资料</span>
+    <span>⚡ 技术原理: 结构动力学 · 振动控制</span>
+  </footer>
 </div>
 
 <script>
-const chapters = {
-  1:{num:"CHAPTER 01",name:"历史起源"},
-  2:{num:"CHAPTER 02",name:"原理分析"},
-  3:{num:"CHAPTER 03",name:"上海中心慧眼"},
-  4:{num:"CHAPTER 04",name:"装置实践"},
-  5:{num:"CHAPTER 05",name:"移民火星"}
-};
-const items = document.querySelectorAll('.nav-item');
-const scenes = document.querySelectorAll('.scene');
-const chapNum = document.getElementById('chapNum');
-const chapName = document.getElementById('chapName');
+// 页面切换功能
+function showPage(pageId){
+  // 隐藏所有页面
+  document.querySelectorAll('.page').forEach(page=>{
+    page.classList.remove('active');
+  });
+  // 显示目标页面
+  document.getElementById(pageId).classList.add('active');
+  // 更新导航按钮状态
+  document.querySelectorAll('.nav-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.page===pageId);
+  });
+}
 
-items.forEach(it=>{
-  it.addEventListener('click',()=>{
-    const t = it.dataset.target;
-    items.forEach(x=>x.classList.remove('active'));
-    it.classList.add('active');
-    scenes.forEach(s=>s.classList.remove('active'));
-    document.querySelector(`.scene[data-scene="${t}"]`).classList.add('active');
-    chapNum.textContent = chapters[t].num;
-    chapName.textContent = chapters[t].name;
+// 导航按钮点击事件
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    showPage(btn.dataset.page);
   });
 });
 
-// Keyboard navigation
-document.addEventListener('keydown',e=>{
-  let cur=1; items.forEach((it,i)=>{if(it.classList.contains('active'))cur=i+1;});
-  if(e.key==='ArrowRight'&&cur<5)items[cur].click();
-  if(e.key==='ArrowLeft'&&cur>1)items[cur-2].click();
+// 键盘导航
+document.addEventListener('keydown',(e)=>{
+  const pages=['home','theory','shanghai','damper','application','advantage','data','future'];
+  const current=document.querySelector('.page.active').id;
+  const idx=pages.indexOf(current);
+  if(e.key==='ArrowRight' && idx<pages.length-1) showPage(pages[idx+1]);
+  if(e.key==='ArrowLeft' && idx>0) showPage(pages[idx-1]);
 });
-
-// 顶部时间
-function updateTime(){
-  const d = new Date();
-  const pad = n=>String(n).padStart(2,'0');
-  const t = `${d.getFullYear()}·${pad(d.getMonth()+1)}·${pad(d.getDate())} · ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  document.getElementById('metaTime').textContent = t;
-}
-setInterval(updateTime,1000); updateTime();
-
-// 背景粒子
-const pc = document.getElementById('particles');
-for(let i=0;i<26;i++){
-  const s = document.createElement('span');
-  const size = 1+Math.random()*2.5;
-  s.style.width=s.style.height=size+'px';
-  s.style.left=(Math.random()*100)+'%';
-  s.style.bottom=(-10-Math.random()*20)+'%';
-  s.style.animationDelay=(-Math.random()*18)+'s';
-  s.style.animationDuration=(14+Math.random()*10)+'s';
-  pc.appendChild(s);
-}
-
-// 火星尘暴粒子
-const dust = document.getElementById('dust');
-for(let i=0;i<40;i++){
-  const s = document.createElement('span');
-  s.style.top=(Math.random()*100)+'%';
-  s.style.left=(-5-Math.random()*15)+'%';
-  s.style.animationDuration=(2+Math.random()*4)+'s';
-  s.style.animationDelay=(-Math.random()*5)+'s';
-  s.style.opacity=0.3+Math.random()*0.5;
-  dust.appendChild(s);
-}
 </script>
 </body>
 </html>
