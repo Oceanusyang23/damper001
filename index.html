@@ -2,1215 +2,2019 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>调谐质量阻尼器 · 阻尼器 科普交互</title>
+<meta name="viewport" content="width=1920, initial-scale=1">
+<title>调谐质量阻尼器 · 风暴中的静止者</title>
 <style>
+/* ============================================================
+   GLOBAL DESIGN TOKENS
+   ============================================================ */
 :root{
-  --bg-0:#070d1c;
-  --bg-1:#0d1730;
-  --bg-2:#142544;
-  --line:rgba(140,180,230,0.10);
-  --line-2:rgba(140,180,230,0.20);
-  --gold:#ffd76b;
-  --gold-2:#ff9b54;
-  --cyan:#5fe4f0;
-  --cyan-2:#2a8da0;
-  --mint:#4ddca8;
-  --red:#ff6b6b;
-  --text:#eef4ff;
-  --text-dim:#9bb1cf;
-  --text-mute:#5e7494;
+  --paper:#f3e9d2;
+  --paper-2:#e9dcbb;
+  --ink:#1a2531;
+  --ink-2:#2e3d4f;
+  --ink-soft:#506578;
+  --gold:#e7b656;
+  --gold-2:#c98a2c;
+  --amber:#f08a3b;
+  --rust:#b94a2a;
+  --teal:#2c8c8a;
+  --teal-2:#0e5559;
+  --navy:#0e1c2b;
+  --navy-2:#0a1422;
+  --steel:#88a8b6;
+  --cream:#fff4dc;
+  --rope:#a78d5b;
+  --copper:#c47a3a;
+  --mars-1:#c25a2f;
+  --mars-2:#8a3818;
+  --mars-3:#2a0f08;
+  --line:#2b3a4a;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:1920px;height:1080px;background:#000;color:var(--text);
-  font-family:"PingFang SC","Microsoft YaHei","Inter","Helvetica Neue",sans-serif;
-  overflow:hidden;-webkit-font-smoothing:antialiased;
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#06101a;color:#e8f1f5;
+  font-family:"Songti SC","Source Han Serif SC","Noto Serif SC","PingFang SC","Microsoft YaHei",serif;
+  user-select:none;-webkit-font-smoothing:antialiased}
+.sans{font-family:"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif}
+.mono{font-family:"JetBrains Mono","SF Mono","Menlo",monospace}
+
+/* ============================================================
+   STAGE 1920×1080
+   ============================================================ */
+.stage{
+  position:fixed;left:50%;top:50%;
+  width:1920px;height:1080px;
+  transform-origin:center;
+  transform:translate(-50%,-50%);
+  overflow:hidden;
+  background:#06101a;
+  box-shadow:0 40px 120px rgba(0,0,0,.6);
+}
+.viewport{
+  position:absolute;inset:0;
+  display:flex;width:calc(1920px * 5);
+  transition:transform 1.35s cubic-bezier(.77,0,.18,1);
+  will-change:transform;
+}
+.scene{
+  position:relative;width:1920px;height:1080px;flex-shrink:0;
+  overflow:hidden;isolation:isolate;
 }
 
-/* ============ 整体容器与共享背景 ============ */
-.app{
-  position:relative;width:1920px;height:1080px;overflow:hidden;
-  background:
-    radial-gradient(ellipse 1100px 600px at 18% 10%, rgba(95,228,240,0.10), transparent 60%),
-    radial-gradient(ellipse 1000px 700px at 85% 95%, rgba(255,155,84,0.10), transparent 60%),
-    linear-gradient(160deg,var(--bg-0) 0%, var(--bg-1) 50%, var(--bg-0) 100%);
+/* paper grain canvas overlay across all scenes */
+#grain{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;mix-blend-mode:overlay;opacity:.35;z-index:2;
 }
-.bg-grid{
-  position:absolute;inset:0;pointer-events:none;
-  background-image:
-    linear-gradient(rgba(140,180,230,0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(140,180,230,0.045) 1px, transparent 1px);
-  background-size:60px 60px;
-  mask-image:radial-gradient(ellipse at center, black 40%, transparent 95%);
+.vignette{
+  position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.45) 100%);
 }
-.bg-noise{
-  position:absolute;inset:0;pointer-events:none;opacity:0.5;mix-blend-mode:overlay;
-  background:radial-gradient(circle at 50% 50%, transparent 0, rgba(0,0,0,0.4) 100%);
+
+/* ============================================================
+   COMMON: TYPOGRAPHY / DECORATIONS
+   ============================================================ */
+.title-zh{font-weight:900;letter-spacing:.04em;line-height:1}
+.title-zh em{font-style:normal;color:var(--gold);position:relative}
+.title-zh em::after{content:"";position:absolute;left:-2px;right:-2px;bottom:-6px;height:6px;
+  background:linear-gradient(90deg,transparent,var(--gold) 30%,var(--gold) 70%,transparent);
+  opacity:.25;border-radius:6px;}
+.kicker{font-size:13px;letter-spacing:.45em;color:#9eb8c8;text-transform:uppercase;font-family:"Helvetica Neue",sans-serif}
+.kicker-amber{color:var(--gold)}
+.serif-num{font-family:"Bodoni 72","Didot",serif;font-style:italic;font-weight:400}
+
+/* hand-drawn looking accent line */
+.hr-orn{position:relative;height:14px;display:flex;align-items:center;gap:8px}
+.hr-orn::before,.hr-orn::after{content:"";flex:1;height:1px;background:currentColor;opacity:.4}
+.hr-orn i{width:6px;height:6px;border:1px solid currentColor;transform:rotate(45deg);opacity:.7}
+
+/* dashed annotation lines */
+.dash-line{stroke-dasharray:4 5;stroke-linecap:round}
+
+/* circular callout numbers */
+.callout-n{
+  display:inline-grid;place-items:center;
+  width:26px;height:26px;border-radius:50%;
+  border:1.5px solid currentColor;
+  font-size:13px;font-weight:700;font-family:"Bodoni 72","Didot",serif;
 }
-.bg-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.bg-particles span{
-  position:absolute;width:2px;height:2px;background:rgba(255,255,255,0.25);
-  border-radius:50%;animation:float 12s infinite ease-in-out
+
+/* ============================================================
+   BOTTOM NAVIGATION
+   ============================================================ */
+.nav{
+  position:absolute;left:0;right:0;bottom:0;
+  height:88px;display:flex;align-items:center;justify-content:center;
+  gap:6px;padding-bottom:6px;
+  background:linear-gradient(180deg,rgba(8,18,28,0) 0%, rgba(4,10,16,.7) 50%, rgba(2,6,10,.96) 100%);
+  z-index:60;backdrop-filter:blur(6px);
+}
+.nav-item{
+  position:relative;
+  display:flex;align-items:center;gap:12px;
+  padding:11px 22px;
+  border-radius:42px;
+  color:#bcd2dc;
+  cursor:pointer;
+  font-size:15px;letter-spacing:.18em;font-weight:500;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  transition:all .55s cubic-bezier(.65,.05,.36,1);
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.025);
+}
+.nav-item .num{
+  width:26px;height:26px;display:grid;place-items:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.08);
+  font-size:12px;font-weight:700;color:#9ec2d2;
+  font-family:"Bodoni 72","Didot",serif;font-style:italic;
+  transition:all .55s ease;
+}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.06)}
+.nav-item.active{
+  color:#0e1c2b;
+  background:linear-gradient(135deg,#f6d365 0%,#e7b656 60%,#c98a2c 100%);
+  border-color:rgba(255,255,255,.2);
+  box-shadow:0 8px 28px rgba(231,182,86,.32), inset 0 0 0 1px rgba(255,255,255,.4);
+  letter-spacing:.22em;
+}
+.nav-item.active .num{background:rgba(10,22,34,.18);color:#0e1c2b}
+.nav-decor{
+  position:absolute;left:50%;top:-12px;transform:translateX(-50%);
+  font-size:10px;letter-spacing:.6em;color:#5d7889;font-family:"Helvetica Neue",sans-serif;
+}
+
+.arrow-btn{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:50px;height:50px;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);
+  color:#dfe9ee;font-size:22px;
+  transition:all .35s ease;z-index:65;
+  font-family:"Bodoni 72",serif;
+}
+.arrow-btn:hover{background:rgba(255,255,255,.12);transform:translateY(-50%) scale(1.08)}
+.arrow-prev{left:30px}.arrow-next{right:30px}
+
+.scene-counter{
+  position:absolute;left:60px;top:42px;z-index:40;
+  font-size:11px;letter-spacing:.4em;color:#9ec2d2;font-family:"Helvetica Neue",sans-serif;
+}
+.scene-counter b{font-size:64px;color:#fff;font-weight:200;letter-spacing:.02em;
+  display:block;line-height:1;margin-bottom:6px;font-family:"Bodoni 72","Didot",serif;font-style:italic}
+.brand-mark{
+  position:absolute;right:60px;top:42px;z-index:40;
+  font-size:11px;letter-spacing:.4em;color:#9ec2d2;font-family:"Helvetica Neue",sans-serif;
+  text-align:right;
+}
+.brand-mark b{display:block;font-size:14px;color:#fff;letter-spacing:.28em;margin-bottom:6px;font-weight:500}
+
+/* ============================================================
+   COMMON ANIMATIONS
+   ============================================================ */
+/* base entrance: opacity ONLY — never override transform on the host element
+   (centered elements need their translateX(-50%) preserved) */
+.scene .in{opacity:0;transition:opacity 1s ease}
+.scene.active .in{opacity:1}
+/* directional slides only apply to elements explicitly tagged fromL / fromR,
+   none of which need horizontal centering */
+.scene .in.fromL{transform:translateX(-50px)}
+.scene .in.fromR{transform:translateX(50px)}
+.scene .in.fromL,.scene .in.fromR{transition:opacity 1s ease, transform 1.05s cubic-bezier(.22,.61,.36,1)}
+.scene.active .in.fromL,.scene.active .in.fromR{transform:none}
+.scene .in.d1{transition-delay:.15s}
+.scene .in.d2{transition-delay:.30s}
+.scene .in.d3{transition-delay:.45s}
+.scene .in.d4{transition-delay:.60s}
+.scene .in.d5{transition-delay:.75s}
+.scene .in.d6{transition-delay:.90s}
+.scene .in.d7{transition-delay:1.05s}
+.scene .in.d8{transition-delay:1.20s}
+
+@keyframes sway{
+  0%,100%{transform:translateX(-12px) rotate(-2deg)}
+  50%{transform:translateX(12px) rotate(2deg)}
+}
+@keyframes pendulum{
+  0%,100%{transform:translateX(-12px) rotate(-4deg)}
+  50%{transform:translateX(12px) rotate(4deg)}
+}
+@keyframes counterpend{
+  0%,100%{transform:translateX(20px) rotate(6deg)}
+  50%{transform:translateX(-20px) rotate(-6deg)}
 }
 @keyframes float{
-  0%,100%{transform:translateY(0) translateX(0);opacity:0}
-  10%{opacity:1}
-  90%{opacity:1}
-  100%{transform:translateY(-100px) translateX(50px);opacity:0}
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+@keyframes shimmer{
+  0%,100%{opacity:.65}
+  50%{opacity:1}
+}
+@keyframes windFlow{
+  0%{transform:translateX(0);opacity:0}
+  20%{opacity:.9}
+  100%{transform:translateX(260px);opacity:0}
+}
+@keyframes dust{
+  0%{transform:translate(0,0);opacity:.6}
+  100%{transform:translate(-1920px,40px);opacity:0}
 }
 
-/* ============ 页面过渡 ============ */
-.page{
-  position:absolute;inset:0;display:none;
-  opacity:0;transform:translateY(20px);transition:opacity .6s ease, transform .6s ease
+/* ============================================================
+   SCENE 1 · HISTORICAL ORIGINS
+   ============================================================ */
+.s1{
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(231,182,86,.07) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(44,140,138,.08) 0%, transparent 50%),
+    linear-gradient(165deg, #0d1e2e 0%, #091624 50%, #0a1830 100%);
 }
-.page.active{display:block;opacity:1;transform:translateY(0)}
+.s1 .starfield{position:absolute;inset:0;pointer-events:none;opacity:.45}
+.s1 .blueprint-grid{
+  position:absolute;inset:0;pointer-events:none;opacity:.06;
+  background-image:
+    linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px);
+  background-size:80px 80px,80px 80px;
+}
+.s1 .compass-rose{
+  position:absolute;right:70px;top:130px;width:110px;height:110px;opacity:.35;z-index:5;
+}
+.s1-header{position:absolute;left:60px;top:118px;right:60px;z-index:10;display:flex;justify-content:space-between;align-items:flex-end}
+.s1-header h1{font-size:80px;color:#fff;text-shadow:0 4px 30px rgba(0,0,0,.5)}
+.s1-header .meta{text-align:right;color:#c6d5de}
+.s1-header .meta h2{font-size:22px;margin-top:8px;color:#dfe9ee;letter-spacing:.1em;font-weight:400}
+.s1-header .meta .sub{font-size:13px;color:#7a93a4;margin-top:6px;letter-spacing:.2em}
 
-/* ============ 导航栏 ============ */
-.nav{
-  position:fixed;top:0;left:0;right:0;height:64px;z-index:1000;
-  display:flex;align-items:center;justify-content:space-between;padding:0 48px;
-  background:linear-gradient(to bottom, rgba(7,13,28,0.95), rgba(7,13,28,0.6));
-  backdrop-filter:blur(12px);border-bottom:1px solid var(--line)
-}
-.nav-logo{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:700;letter-spacing:0.5px}
-.nav-logo::before{
-  content:"";width:32px;height:32px;border-radius:8px;
-  background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  box-shadow:0 4px 20px rgba(255,155,84,0.4)
-}
-.nav-links{display:flex;gap:8px}
-.nav-btn{
-  padding:10px 20px;border-radius:8px;border:none;background:transparent;
-  color:var(--text-dim);font-size:14px;cursor:pointer;transition:all .3s ease;
-  font-family:inherit
-}
-.nav-btn:hover{color:var(--text);background:rgba(255,255,255,0.05)}
-.nav-btn.active{color:var(--gold);background:rgba(255,215,107,0.12)}
-
-/* ============ 页面1: 首页 ============ */
-.hero{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:0 120px}
-.hero-badge{
-  display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:20px;
-  background:rgba(95,228,240,0.12);border:1px solid rgba(95,228,240,0.3);
-  color:var(--cyan);font-size:13px;margin-bottom:32px;letter-spacing:1px
-}
-.hero h1{font-size:64px;font-weight:800;line-height:1.1;margin-bottom:24px;letter-spacing:-1px}
-.hero h1 span{background:linear-gradient(135deg,var(--gold),var(--gold-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p{font-size:20px;color:var(--text-dim);line-height:1.7;max-width:800px;margin-bottom:48px}
-.hero-cta{
-  display:flex;gap:16px
-}
-.btn-primary{
-  padding:16px 40px;border-radius:12px;border:none;
-  background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  color:#1a0f00;font-size:16px;font-weight:700;cursor:pointer;
-  box-shadow:0 8px 32px rgba(255,155,84,0.35);transition:all .3s ease;
-  font-family:inherit
-}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,155,84,0.5)}
-.btn-secondary{
-  padding:16px 40px;border-radius:12px;border:1px solid var(--line-2);
-  background:rgba(255,255,255,0.03);color:var(--text);font-size:16px;cursor:pointer;
-  transition:all .3s ease;font-family:inherit
-}
-.btn-secondary:hover{background:rgba(255,255,255,0.08);border-color:var(--cyan)}
-
-/* 首页装饰元素 */
-.hero-visual{
-  position:absolute;right:80px;top:50%;transform:translateY(-50%);
-  width:400px;height:500px;pointer-events:none
-}
-.tower-mini{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:120px;height:380px;background:linear-gradient(to top,var(--bg-2),var(--bg-1));
-  border-radius:8px 8px 0 0;border:1px solid var(--line-2);
-  box-shadow:0 0 60px rgba(95,228,240,0.2)
-}
-.tower-mini::before{
-  content:"";position:absolute;top:-30px;left:50%;transform:translateX(-50%);
-  width:0;height:0;border-left:60px solid transparent;border-right:60px solid transparent;
-  border-bottom:30px solid var(--bg-2)
-}
-.damper-pulse{
-  position:absolute;top:80px;left:50%;transform:translateX(-50%);
-  width:80px;height:40px;background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  border-radius:6px;box-shadow:0 0 40px rgba(255,215,107,0.6);
-  animation:pulse 2s infinite ease-in-out
-}
-@keyframes pulse{
-  0%,100%{transform:translateX(-50%) scale(1);opacity:1}
-  50%{transform:translateX(-50%) scale(1.05);opacity:0.8}
+.s1 .subhead{
+  position:absolute;left:60px;top:235px;
+  color:#7a93a4;font-size:14px;letter-spacing:.32em;
+  font-family:"Helvetica Neue",sans-serif;
 }
 
-/* ============ 页面2: 原理 ============ */
-.theory{position:relative;height:100%;padding:100px 80px 40px;display:flex;gap:60px}
-.theory-left{flex:1;display:flex;flex-direction:column;justify-content:center}
-.theory-left h2{font-size:42px;font-weight:700;margin-bottom:16px}
-.theory-left h2 span{color:var(--cyan)}
-.theory-left .subtitle{font-size:16px;color:var(--text-dim);margin-bottom:48px}
+/* timeline rail */
+.s1 .rail{
+  position:absolute;left:60px;right:60px;top:380px;height:2px;z-index:5;
+  background:linear-gradient(90deg,
+    rgba(231,182,86,.0) 0%,
+    rgba(231,182,86,.4) 8%,
+    rgba(231,182,86,.7) 50%,
+    rgba(44,140,138,.7) 92%,
+    rgba(44,140,138,0) 100%);
+}
+.s1 .rail::before,.s1 .rail::after{
+  content:"";position:absolute;top:50%;width:10px;height:10px;border-radius:50%;
+  transform:translateY(-50%);
+}
+.s1 .rail::before{left:-2px;background:var(--gold);box-shadow:0 0 16px var(--gold)}
+.s1 .rail::after{right:-2px;background:var(--teal);box-shadow:0 0 16px var(--teal)}
 
-.principle-cards{display:flex;flex-direction:column;gap:20px}
-.p-card{
-  padding:28px;border-radius:16px;background:rgba(255,255,255,0.03);
-  border:1px solid var(--line);transition:all .3s ease
-}
-.p-card:hover{border-color:var(--line-2);background:rgba(255,255,255,0.05);transform:translateX(8px)}
-.p-card h3{font-size:18px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:10px}
-.p-card h3::before{
-  content:"";width:8px;height:8px;border-radius:50%;background:var(--cyan);
-  box-shadow:0 0 12px var(--cyan)
-}
-.p-card p{font-size:14px;color:var(--text-dim);line-height:1.7}
+.s1 .rail-ticks{position:absolute;left:60px;right:60px;top:374px;height:14px;z-index:6;display:flex;justify-content:space-between;padding:0 8%}
+.s1 .rail-ticks i{width:1px;height:14px;background:rgba(231,182,86,.5)}
 
-.theory-right{
-  width:700px;display:flex;flex-direction:column;justify-content:center;align-items:center;
-  position:relative
-}
-
-/* 物理示意图 */
-.physics-diagram{
-  position:relative;width:100%;height:500px;background:var(--bg-1);border-radius:20px;
-  border:1px solid var(--line);overflow:hidden
-}
-.building-sway{
-  position:absolute;left:100px;top:50px;width:200px;height:400px;
-  transform-origin:bottom center;animation:sway 4s infinite ease-in-out
-}
-@keyframes sway{
-  0%,100%{transform:rotate(-3deg)}
-  50%{transform:rotate(3deg)}
-}
-.building-body{
-  width:100%;height:100%;background:linear-gradient(to right,var(--bg-2),rgba(95,228,240,0.1));
-  border-radius:8px;border:2px solid var(--cyan-2)
-}
-.mass-block{
-  position:absolute;top:20px;left:50%;transform:translateX(-50%);
-  width:120px;height:60px;background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  border-radius:8px;box-shadow:0 8px 32px rgba(255,215,107,0.4);
-  display:flex;align-items:center;justify-content:center;font-weight:700;color:#1a0f00
-}
-.spring-visual{
-  position:absolute;top:80px;left:50%;transform:translateX(-50%);
-  width:4px;height:60px;background:repeating-linear-gradient(
-    to bottom,
-    var(--text-dim) 0px,
-    var(--text-dim) 8px,
-    transparent 8px,
-    transparent 12px
-  )
-}
-.force-arrow{
-  position:absolute;right:60px;top:200px;display:flex;flex-direction:column;align-items:center;gap:8px
-}
-.arrow-line{
-  width:3px;height:100px;background:linear-gradient(to bottom,var(--red),transparent);
-  position:relative
-}
-.arrow-line::after{
-  content:"";position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
-  border-left:10px solid transparent;border-right:10px solid transparent;border-top:15px solid var(--red)
-}
-.force-label{color:var(--red);font-size:14px;font-weight:600}
-
-.physics-legend{
-  position:absolute;bottom:24px;left:24px;right:24px;
-  display:flex;justify-content:center;gap:40px;font-size:13px;color:var(--text-dim)
-}
-.legend-item{display:flex;align-items:center;gap:8px}
-.legend-color{width:16px;height:16px;border-radius:4px}
-
-/* ============ 页面3: 上海中心 ============ */
-.shanghai{position:relative;height:100%;padding:100px 80px 40px}
-.shanghai-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}
-.shanghai-header h2{font-size:42px;font-weight:700}
-.shanghai-header h2 span{color:var(--gold)}
-.building-stats{display:flex;gap:32px}
-.stat-item{text-align:right}
-.stat-value{font-size:32px;font-weight:800;color:var(--cyan);line-height:1}
-.stat-label{font-size:13px;color:var(--text-dim);margin-top:6px}
-
-.shanghai-content{display:flex;gap:40px;height:calc(100% - 140px)}
-
-/* 建筑剖面图 */
-.tower-section{
-  width:380px;position:relative;background:var(--bg-1);border-radius:20px;
-  border:1px solid var(--line);overflow:hidden;padding:30px
-}
-.tower-svg{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);width:200px;height:85%}
-.tower-outline{
-  fill:url(#towerGradient);stroke:var(--cyan-2);stroke-width:2
-}
-.damper-zone{
-  fill:rgba(255,215,107,0.25);stroke:var(--gold);stroke-width:2;stroke-dasharray:5,5
-}
-.floor-marker{
-  position:absolute;right:30px;font-size:12px;color:var(--text-dim)
-}
-.floor-126{top:12%}
-.floor-125{top:22%}
-.floor-100{top:45%}
-.floor-50{top:70%}
-
-.damper-detail{
-  position:absolute;top:12%;left:50%;transform:translateX(-50%);
-  width:280px;padding:20px;border-radius:12px;
-  background:rgba(255,215,107,0.1);border:1px solid rgba(255,215,107,0.3)
-}
-.damper-detail h4{font-size:14px;color:var(--gold);margin-bottom:12px}
-.damper-specs{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.spec-row{display:flex;justify-content:space-between;font-size:13px}
-.spec-label{color:var(--text-dim)}
-.spec-value{color:var(--text);font-weight:600}
-
-/* 阻尼器可视化 */
-.damper-viz{
-  flex:1;background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
-  position:relative;overflow:hidden;padding:40px
-}
-.viz-title{
-  position:absolute;top:30px;left:40px;font-size:20px;font-weight:700
-}
-.viz-title span{font-size:14px;color:var(--text-dim);font-weight:400;margin-left:12px}
-
-.damper-container{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:500px;height:400px
-}
-
-/* 悬挂系统 */
-.suspension-system{position:relative;width:100%;height:100%}
-.cable-left,.cable-right{
-  position:absolute;top:0;width:3px;height:200px;background:linear-gradient(to bottom,var(--text-dim),var(--bg-2))
-}
-.cable-left{left:80px;transform-origin:top left;animation:cableSwayLeft 5s infinite ease-in-out}
-.cable-right{right:80px;transform-origin:top right;animation:cableSwayRight 5s infinite ease-in-out}
-@keyframes cableSwayLeft{
-  0%,100%{transform:rotate(8deg)}
-  50%{transform:rotate(-8deg)}
-}
-@keyframes cableSwayRight{
-  0%,100%{transform:rotate(-8deg)}
-  50%{transform:rotate(8deg)}
-}
-
-/* 质量块 */
-.mass-swing{
-  position:absolute;top:180px;left:50%;transform:translateX(-50%);
-  width:200px;height:100px;animation:massSway 5s infinite ease-in-out
-}
-@keyframes massSway{
-  0%,100%{transform:translateX(-50%) rotate(-4deg) translateX(-30px)}
-  50%{transform:translateX(-50%) rotate(4deg) translateX(30px)}
-}
-.mass-body{
-  width:100%;height:100%;background:linear-gradient(145deg,#3a3a3a,#2a2a2a);
-  border-radius:12px;border:2px solid #555;
-  box-shadow:0 20px 60px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.1);
-  display:flex;align-items:center;justify-content:center;position:relative
-}
-.mass-weight{
-  font-size:28px;font-weight:800;color:var(--gold);text-shadow:0 2px 10px rgba(255,215,107,0.3)
-}
-.mass-decoration{
-  position:absolute;inset:8px;border:1px solid rgba(255,255,255,0.1);border-radius:8px
-}
-
-/* 连接点 */
-.connection-point{
-  position:absolute;top:-10px;left:50%;transform:translateX(-50%);
-  width:24px;height:24px;background:radial-gradient(circle at 30% 30%,#777,#333);
-  border-radius:50%;border:2px solid #555;box-shadow:0 4px 12px rgba(0,0,0,0.4)
-}
-
-/* 减震器 */
-.damper-unit{
-  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
-  width:300px;height:80px;display:flex;gap:20px;align-items:center;justify-content:center
-}
-.damper-piston{
-  width:60px;height:100%;background:linear-gradient(to right,#555,#333,#555);
-  border-radius:6px;border:1px solid #666;position:relative
-}
-.damper-cylinder{
-  flex:1;height:70%;background:linear-gradient(to bottom,var(--bg-2),var(--bg-0));
-  border-radius:8px;border:2px solid var(--cyan-2);position:relative;overflow:hidden
-}
-.damper-fluid{
-  position:absolute;inset:4px;background:linear-gradient(90deg,var(--cyan-2),var(--cyan),var(--cyan-2));
-  border-radius:4px;opacity:0.6;animation:fluidMove 3s infinite ease-in-out
-}
-@keyframes fluidMove{
-  0%,100%{transform:translateX(-20px)}
-  50%{transform:translateX(20px)}
-}
-
-/* 状态指示 */
-.status-panel{
-  position:absolute;bottom:30px;left:40px;right:40px;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:20px 30px;background:rgba(255,255,255,0.03);border-radius:12px;
-  border:1px solid var(--line)
-}
-.status-item{display:flex;align-items:center;gap:12px}
-.status-indicator{
-  width:10px;height:10px;border-radius:50%;background:var(--mint);
-  box-shadow:0 0 12px var(--mint);animation:blink 2s infinite
-}
-@keyframes blink{
-  0%,100%{opacity:1}
-  50%{opacity:0.5}
-}
-.status-text{font-size:14px;color:var(--text-dim)}
-.status-text strong{color:var(--text);font-weight:600}
-
-/* ============ 页面4: 阻尼器 ============ */
-.damper{position:relative;height:100%;padding:100px 80px 40px}
-.damper h2{font-size:42px;font-weight:700;margin-bottom:16px}
-.damper h2 span{color:var(--mint)}
-.damper > .subtitle{font-size:16px;color:var(--text-dim);margin-bottom:40px}
-
-.damper-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;height:calc(100% - 140px)}
-
-.damper-card{
-  background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
-  padding:32px;display:flex;flex-direction:column;transition:all .3s ease
-}
-.damper-card:hover{border-color:var(--line-2);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,0.4)}
-.damper-card.featured{border-color:rgba(255,215,107,0.3);background:linear-gradient(180deg,rgba(255,215,107,0.05),var(--bg-1))}
-
-.card-icon{
-  width:56px;height:56px;border-radius:14px;
-  background:linear-gradient(135deg,var(--cyan),var(--cyan-2));
-  display:flex;align-items:center;justify-content:center;margin-bottom:24px;
-  font-size:24px
-}
-.damper-card.featured .card-icon{background:linear-gradient(135deg,var(--gold),var(--gold-2))}
-
-.card-title{font-size:22px;font-weight:700;margin-bottom:12px}
-.card-desc{font-size:14px;color:var(--text-dim);line-height:1.7;flex:1}
-
-.card-specs{margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
-.spec-item{display:flex;justify-content:space-between;margin-bottom:10px;font-size:13px}
-.spec-item:last-child{margin-bottom:0}
-
-/* ============ 页面5: 应用 ============ */
-.application{position:relative;height:100%;padding:100px 80px 40px}
-.application h2{font-size:42px;font-weight:700;margin-bottom:40px}
-.application h2 span{color:var(--cyan)}
-
-.app-showcase{display:flex;gap:30px;height:calc(100% - 120px)}
-
-.app-card{
-  flex:1;background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
-  overflow:hidden;display:flex;flex-direction:column;transition:all .3s ease
-}
-.app-card:hover{transform:translateY(-8px);border-color:var(--line-2);box-shadow:0 30px 80px rgba(0,0,0,0.5)}
-
-.app-visual{
-  height:200px;position:relative;overflow:hidden
-}
-.app-visual::after{
-  content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent,var(--bg-1))
-}
-
-.bridge-visual{background:linear-gradient(135deg,#1a2a4a,#0d1730);position:relative}
-.bridge-tower{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:20px;height:150px;background:linear-gradient(to right,#3a4a6a,#2a3a5a)
-}
-.bridge-deck{
-  position:absolute;bottom:40px;left:10%;right:10%;height:8px;background:#4a5a7a;border-radius:4px
-}
-.bridge-cables{
-  position:absolute;bottom:40px;left:50%;transform:translateX(-50%);
-  width:200px;height:110px;background:repeating-linear-gradient(90deg,transparent,transparent 20px,#5a6a8a 20px,#5a6a8a 22px)
-}
-
-.tower-visual{background:linear-gradient(135deg,#2a1a3a,#0d1730);position:relative}
-.tower-building{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:80px;height:180px;background:linear-gradient(to top,#3a2a4a,#2a1a3a);
-  clip-path:polygon(20% 0%,80% 0%,100% 100%,0% 100%)
-}
-.tower-damper{
-  position:absolute;bottom:120px;left:50%;transform:translateX(-50%);
-  width:40px;height:20px;background:var(--gold);border-radius:4px;
-  box-shadow:0 0 20px rgba(255,215,107,0.5)
-}
-
-.chimney-visual{background:linear-gradient(135deg,#3a2a2a,#0d1730);position:relative}
-.chimney-stack{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:60px;height:180px;background:linear-gradient(to right,#5a4a4a,#4a3a3a);
-  border-radius:30px 30px 0 0
-}
-.chimney-ring{
-  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
-  width:80px;height:15px;background:var(--cyan);border-radius:4px;opacity:0.8
-}
-
-.app-content{padding:28px;flex:1;display:flex;flex-direction:column}
-.app-content h3{font-size:20px;font-weight:700;margin-bottom:12px}
-.app-content p{font-size:14px;color:var(--text-dim);line-height:1.7;flex:1}
-
-.app-meta{
-  display:flex;gap:16px;margin-top:20px;padding-top:20px;border-top:1px solid var(--line)
-}
-.meta-tag{
-  padding:6px 12px;border-radius:6px;background:rgba(95,228,240,0.1);
-  color:var(--cyan);font-size:12px;font-weight:600
-}
-
-/* ============ 页面6: 优势 ============ */
-.advantage{position:relative;height:100%;padding:100px 80px 40px}
-.advantage h2{font-size:42px;font-weight:700;margin-bottom:40px;text-align:center}
-.advantage h2 span{color:var(--gold)}
-
-.compare-container{
-  display:flex;gap:40px;height:calc(100% - 120px);align-items:center;justify-content:center
-}
-
-.compare-card{
-  width:420px;height:520px;background:var(--bg-1);border-radius:24px;border:2px solid var(--line);
-  padding:40px;display:flex;flex-direction:column;transition:all .3s ease
-}
-.compare-card.optimized{border-color:rgba(78,220,168,0.4);background:linear-gradient(180deg,rgba(78,220,168,0.08),var(--bg-1))}
-.compare-card.optimized:hover{box-shadow:0 30px 80px rgba(78,220,168,0.2)}
-
-.compare-header{
-  text-align:center;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--line)
-}
-.compare-header h3{font-size:24px;font-weight:700;margin-bottom:8px}
-.compare-header .tag{
-  display:inline-block;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600
-}
-.compare-card.traditional .tag{background:rgba(255,107,107,0.15);color:var(--red)}
-.compare-card.optimized .tag{background:rgba(78,220,168,0.15);color:var(--mint)}
-
-.compare-list{flex:1;display:flex;flex-direction:column;gap:16px}
-.compare-item{
-  display:flex;align-items:center;gap:16px;padding:16px;background:rgba(255,255,255,0.03);
-  border-radius:12px
-}
-.compare-icon{
-  width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
-  font-size:18px
-}
-.compare-card.traditional .compare-icon{background:rgba(255,107,107,0.15);color:var(--red)}
-.compare-card.optimized .compare-icon{background:rgba(78,220,168,0.15);color:var(--mint)}
-
-.compare-text{flex:1}
-.compare-text h4{font-size:15px;font-weight:600;margin-bottom:4px}
-.compare-text p{font-size:13px;color:var(--text-dim)}
-
-.compare-vs{
-  width:80px;height:80px;border-radius:50%;
-  background:linear-gradient(135deg,var(--gold),var(--gold-2));
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:800;color:#1a0f00;flex-shrink:0
-}
-
-/* ============ 页面7: 数据 ============ */
-.data{position:relative;height:100%;padding:100px 80px 40px}
-.data h2{font-size:42px;font-weight:700;margin-bottom:16px}
-.data h2 span{color:var(--cyan)}
-.data > .subtitle{font-size:16px;color:var(--text-dim);margin-bottom:40px}
-
-.data-dashboard{
-  display:grid;grid-template-columns:1fr 1fr;gap:24px;height:calc(100% - 140px)
-}
-
-.data-panel{
-  background:var(--bg-1);border-radius:20px;border:1px solid var(--line);
-  padding:28px;display:flex;flex-direction:column
-}
-
-.panel-header{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:20px
-}
-.panel-title{font-size:18px;font-weight:700}
-.panel-badge{
-  padding:6px 12px;border-radius:6px;background:rgba(95,228,240,0.1);
-  color:var(--cyan);font-size:12px;font-weight:600
-}
-
-.chart-container{flex:1;position:relative}
-
-/* 模拟图表 */
-.bar-chart{display:flex;align-items:flex-end;justify-content:space-around;height:100%;padding:20px 0;gap:20px}
-.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:12px}
-.bar{
-  width:100%;background:linear-gradient(to top,var(--cyan-2),var(--cyan));border-radius:6px 6px 0 0;
-  transition:all .3s ease;position:relative
-}
-.bar::after{
-  content:attr(data-value);position:absolute;top:-24px;left:50%;transform:translateX(-50%);
-  font-size:13px;font-weight:700;color:var(--text)
-}
-.bar-item:nth-child(1) .bar{height:45%}
-.bar-item:nth-child(2) .bar{height:72%}
-.bar-item:nth-child(3) .bar{height:60%}
-.bar-item:nth-child(4) .bar{height:85%}
-.bar-item:nth-child(5) .bar{height:55%}
-.bar-label{font-size:12px;color:var(--text-dim);text-align:center}
-
-.line-chart{position:relative;height:100%;padding:20px 0}
-.line-svg{width:100%;height:100%}
-.line-path{
-  fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;
-  stroke-dasharray:1000;stroke-dashoffset:1000;animation:drawLine 3s forwards
-}
-@keyframes drawLine{
-  to{stroke-dashoffset:0}
-}
-.line-area{fill:rgba(255,215,107,0.1);stroke:none}
-
-.data-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:20px}
-.metric-card{
-  padding:20px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid var(--line)
-}
-.metric-value{font-size:28px;font-weight:800;color:var(--gold);line-height:1}
-.metric-label{font-size:13px;color:var(--text-dim);margin-top:6px}
-
-/* ============ 页面8: 展望 ============ */
-.future{position:relative;height:100%;padding:100px 80px 40px}
-.future h2{font-size:42px;font-weight:700;margin-bottom:40px;text-align:center}
-.future h2 span{color:var(--gold)}
-
+/* timeline cards */
 .timeline{
-  position:relative;height:calc(100% - 120px);display:flex;align-items:center;justify-content:center;
-  padding:0 60px
+  position:absolute;left:60px;right:60px;top:420px;
+  display:grid;grid-template-columns:repeat(5, 1fr);gap:24px;
+  z-index:10;
+}
+.tcard{
+  position:relative;height:520px;
+  background:linear-gradient(170deg,rgba(243,233,210,.97),rgba(229,217,188,.94));
+  color:#1a2531;border-radius:6px;
+  padding:24px 22px 22px;
+  box-shadow:
+    0 16px 40px rgba(0,0,0,.45),
+    inset 0 0 0 1px rgba(255,255,255,.4),
+    inset 0 0 60px rgba(180,140,80,.12);
+  overflow:hidden;
+}
+.tcard::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle at 30% 20%, rgba(180,140,80,.15), transparent 60%),
+                   radial-gradient(circle at 80% 90%, rgba(120,90,50,.12), transparent 50%);
+}
+.tcard .ribbon{
+  position:absolute;top:-2px;left:18px;padding:6px 14px 9px;
+  background:var(--ink);color:var(--cream);
+  font-family:"Bodoni 72",serif;font-style:italic;font-size:26px;
+  border-radius:0 0 4px 4px;
+  box-shadow:0 4px 10px rgba(0,0,0,.3);
+}
+.tcard .ribbon::after{
+  content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;
+  background:linear-gradient(transparent 50%, var(--ink) 50%);
+  clip-path:polygon(0 0, 100% 0, 92% 100%, 50% 60%, 8% 100%);
+}
+.tcard .ttl{
+  margin-top:48px;font-size:18px;font-weight:700;letter-spacing:.05em;
+  color:var(--ink);line-height:1.3;
+}
+.tcard .where{font-family:"Helvetica Neue",sans-serif;font-size:11px;color:#7a5828;
+  letter-spacing:.28em;text-transform:uppercase;margin-top:4px}
+.tcard p{
+  font-size:13.5px;line-height:1.65;color:#2e3d4f;margin-top:14px;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+}
+.tcard .ill{
+  position:absolute;left:0;right:0;bottom:14px;height:230px;
+  display:grid;place-items:center;
+}
+.tcard .footnote{
+  position:absolute;left:22px;right:22px;bottom:14px;
+  font-size:10px;letter-spacing:.2em;color:#8a6b3a;
+  font-family:"Helvetica Neue",sans-serif;text-transform:uppercase;
+  border-top:1px dashed rgba(120,90,50,.5);padding-top:6px;
+  display:flex;justify-content:space-between;
 }
 
-.timeline-line{
-  position:absolute;top:50%;left:100px;right:100px;height:3px;
-  background:linear-gradient(to right,var(--cyan-2),var(--cyan),var(--gold),var(--gold-2));
-  border-radius:2px
+/* highlight last card – Shanghai teaser */
+.tcard.teaser{
+  background:linear-gradient(160deg,#0e3a3e 0%, #0a565c 100%);
+  color:var(--cream);
+  box-shadow:0 16px 40px rgba(0,0,0,.55),
+             inset 0 0 0 1px rgba(246,211,101,.3),
+             inset 0 0 80px rgba(0,0,0,.4);
+}
+.tcard.teaser::before{display:none}
+.tcard.teaser .ribbon{background:var(--gold);color:var(--ink)}
+.tcard.teaser .ttl{color:#fff}
+.tcard.teaser p{color:#bfdfdc}
+.tcard.teaser .where{color:#f6d365}
+.tcard.teaser .footnote{color:#9ec5c3;border-color:rgba(246,211,101,.3)}
+
+/* illustration parts */
+.ship-ill{position:relative;width:220px;height:160px}
+.bldg-ill{position:relative;width:120px;height:200px;animation:sway 4s ease-in-out infinite;transform-origin:bottom center}
+.bldg-ill .floor{position:absolute;left:50%;transform:translateX(-50%);background:#5a6f7a;border-top:1px solid rgba(255,255,255,.15)}
+.tower-101{position:relative;width:110px;height:230px;display:flex;flex-direction:column-reverse;align-items:center;animation:sway 5s ease-in-out infinite;transform-origin:bottom center}
+.tower-101 .base{width:108px;height:18px;background:#7a8b95;border-radius:2px 2px 0 0}
+.tower-101 .seg{width:90px;height:18px;background:linear-gradient(135deg,#7fa0b0,#5d7785);border:1px solid rgba(0,0,0,.15);position:relative}
+.tower-101 .seg.flare{width:96px;height:6px;background:#465d6c;margin-bottom:1px}
+.tower-101 .ant{width:4px;height:38px;background:#3a4a55}
+.tower-101 .glow{position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;
+  background:radial-gradient(circle,#f6d365,#c98a2c 70%,transparent);box-shadow:0 0 20px rgba(231,182,86,.6);
+  animation:shimmer 2s ease-in-out infinite}
+
+/* wind streaks */
+.s1 .winds{position:absolute;left:30px;top:380px;height:300px;width:60px;z-index:6;pointer-events:none}
+.s1 .winds i{position:absolute;left:0;width:60px;height:2px;
+  background:linear-gradient(90deg,transparent,#9ec2d2 30%,#9ec2d2 70%,transparent);opacity:.45;
+  animation:windFlow 3s linear infinite}
+.s1 .winds i:nth-child(1){top:30px;animation-delay:0s}
+.s1 .winds i:nth-child(2){top:80px;animation-delay:.4s}
+.s1 .winds i:nth-child(3){top:130px;animation-delay:.8s}
+.s1 .winds i:nth-child(4){top:180px;animation-delay:1.2s}
+
+/* footer band */
+.s1 .footer-band{
+  position:absolute;left:60px;right:60px;bottom:118px;height:30px;z-index:5;
+  display:flex;align-items:center;gap:24px;
+  color:#7a93a4;font-size:11px;letter-spacing:.32em;font-family:"Helvetica Neue",sans-serif;
+}
+.s1 .footer-band .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+.s1 .footer-band .div{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(122,147,164,.4),transparent)}
+
+/* ============================================================
+   SCENE 2 · PRINCIPLE ANALYSIS
+   ============================================================ */
+.s2{
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(44,140,138,.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 80%, rgba(231,182,86,.08) 0%, transparent 50%),
+    linear-gradient(170deg, #0a2030 0%, #0b1e2a 100%);
+}
+.s2 .blueprint-grid{
+  position:absolute;inset:0;opacity:.13;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(122,200,210,.4) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(122,200,210,.4) 1px,transparent 1px),
+    linear-gradient(rgba(122,200,210,.18) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(122,200,210,.18) 1px,transparent 1px);
+  background-size:160px 160px,160px 160px,32px 32px,32px 32px;
+}
+.s2 .bg-word{
+  position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);
+  font-size:580px;font-weight:900;letter-spacing:-.04em;
+  color:rgba(255,255,255,.025);font-family:"Bodoni 72","Didot",serif;font-style:italic;
+  z-index:1;pointer-events:none;
 }
 
-.timeline-item{
-  position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;
-  text-align:center
-}
-.timeline-item:nth-child(odd){margin-top:-120px}
-.timeline-item:nth-child(even){margin-top:120px}
+.s2-head{position:absolute;left:60px;right:60px;top:118px;z-index:10;display:flex;justify-content:space-between;align-items:flex-end}
+.s2-head h1{font-size:80px;color:#fff}
+.s2-head .meta{text-align:right;color:#c6d5de}
+.s2-head .meta h2{font-size:20px;margin-top:8px;color:#7ac8d2;letter-spacing:.12em;font-weight:400}
 
-.timeline-dot{
-  width:24px;height:24px;border-radius:50%;background:var(--bg-0);
-  border:3px solid var(--cyan);box-shadow:0 0 20px rgba(95,228,240,0.5);
-  position:relative;z-index:2
+/* main diagram: two-mass model */
+.diagram{
+  position:absolute;left:80px;top:300px;width:780px;height:530px;z-index:10;
 }
-.timeline-item.active .timeline-dot{border-color:var(--gold);box-shadow:0 0 25px rgba(255,215,107,0.6)}
+.diagram svg{width:100%;height:100%;overflow:visible}
 
-.timeline-content{
-  width:220px;padding:24px;background:var(--bg-1);border-radius:16px;
-  border:1px solid var(--line);margin-top:20px;transition:all .3s ease
+/* right column: cards */
+.s2 .right-col{
+  position:absolute;right:60px;top:280px;width:860px;z-index:10;
 }
-.timeline-item:hover .timeline-content{border-color:var(--line-2);transform:translateY(-4px)}
-.timeline-year{font-size:14px;color:var(--cyan);font-weight:700;margin-bottom:8px}
-.timeline-item.active .timeline-year{color:var(--gold)}
-.timeline-title{font-size:16px;font-weight:700;margin-bottom:8px}
-.timeline-desc{font-size:13px;color:var(--text-dim);line-height:1.6}
+.energy-card{
+  background:linear-gradient(155deg,rgba(14,32,46,.92),rgba(10,24,36,.92));
+  border:1px solid rgba(122,200,210,.25);
+  border-radius:10px;padding:26px 28px;color:#dfe9ee;
+  box-shadow:0 16px 40px rgba(0,0,0,.4);
+  position:relative;overflow:hidden;
+}
+.energy-card::before{
+  content:"";position:absolute;left:-1px;top:-1px;width:60px;height:60px;
+  border-top:2px solid var(--gold);border-left:2px solid var(--gold);border-radius:10px 0 0 0;
+}
+.energy-card::after{
+  content:"";position:absolute;right:-1px;bottom:-1px;width:60px;height:60px;
+  border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);border-radius:0 0 10px 0;
+}
+.energy-card h3{font-size:24px;color:#fff;margin-bottom:8px;letter-spacing:.04em}
+.energy-card .lead{font-size:14.5px;line-height:1.7;color:#bcd2dc;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
 
-/* ============ 页脚 ============ */
-.footer{
-  position:fixed;bottom:0;left:0;right:0;height:50px;
-  display:flex;align-items:center;justify-content:center;gap:40px;
-  background:linear-gradient(to top,rgba(7,13,28,0.95),rgba(7,13,28,0.6));
-  backdrop-filter:blur(12px);border-top:1px solid var(--line);
-  font-size:13px;color:var(--text-dim);z-index:1000
-}
-.footer span{display:flex;align-items:center;gap:8px}
-.footer strong{color:var(--text);font-weight:600}
+.curves{height:230px;margin:20px 0 14px;position:relative}
+.curves svg{width:100%;height:100%}
+.curve-legend{display:flex;gap:24px;font-size:12px;color:#bcd2dc;letter-spacing:.04em;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.curve-legend span{display:flex;align-items:center;gap:8px}
+.curve-legend i{width:18px;height:3px;border-radius:2px}
 
-/* ============ 响应式 ============ */
-@media(max-width:1920px){
-  html,body{width:100vw;height:100vh}
-  .app{width:100vw;height:100vh}
+.points{
+  position:absolute;right:60px;bottom:160px;width:860px;z-index:10;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
 }
+.pt{
+  background:rgba(255,255,255,.04);border:1px solid rgba(122,200,210,.25);
+  border-radius:8px;padding:18px 20px;
+  position:relative;color:#dfe9ee;
+}
+.pt .pn{
+  font-family:"Bodoni 72",serif;font-style:italic;font-size:42px;font-weight:200;
+  color:var(--gold);line-height:1;letter-spacing:.02em;
+}
+.pt h4{font-size:18px;margin-top:4px;color:#fff;letter-spacing:.05em}
+.pt p{font-size:13px;line-height:1.65;color:#bcd2dc;margin-top:8px;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+
+/* equation badge */
+.eq-badge{
+  position:absolute;left:80px;bottom:200px;z-index:10;
+  font-family:"Cambria Math","Latin Modern Math","Times New Roman",serif;
+  color:#dfe9ee;background:rgba(14,32,46,.88);border:1px dashed rgba(231,182,86,.4);
+  padding:18px 26px;border-radius:6px;font-size:20px;letter-spacing:.04em;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+.eq-badge .label{font-family:"Helvetica Neue",sans-serif;font-size:10px;letter-spacing:.32em;
+  color:#7ac8d2;margin-bottom:8px;text-transform:uppercase}
+.eq-badge em{font-style:italic;color:var(--gold)}
+
+/* ============================================================
+   SCENE 3 · SHANGHAI · EYE
+   ============================================================ */
+.s3{
+  background:
+    radial-gradient(ellipse at 30% 90%, rgba(231,182,86,.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 20%, rgba(122,200,210,.08) 0%, transparent 50%),
+    linear-gradient(180deg, #050d18 0%, #0a1626 60%, #0b1e2e 100%);
+}
+.s3 .city-skyline{
+  position:absolute;left:0;right:0;bottom:90px;height:220px;z-index:1;pointer-events:none;opacity:.55;
+}
+.s3 .city-lights{
+  position:absolute;left:0;right:0;bottom:90px;height:180px;z-index:2;pointer-events:none;
+}
+.s3-head{position:absolute;left:60px;right:60px;top:118px;z-index:10;display:flex;justify-content:space-between;align-items:flex-end}
+.s3-head h1{font-size:84px;color:#fff}
+.s3-head h1 em{color:var(--gold)}
+.s3-head .meta{text-align:right;color:#c6d5de}
+.s3-head .meta h2{font-size:20px;margin-top:8px;color:#f6d365;letter-spacing:.12em;font-weight:400}
+.s3-head .meta .sub{font-size:12px;color:#86b1c4;margin-top:6px;letter-spacing:.22em}
+
+/* tower SVG container — spans full scene width; SVG inside centers viewBox horizontally */
+.shanghaiTower{
+  position:absolute;left:0;right:0;top:130px;
+  height:820px;z-index:5;
+  pointer-events:none;
+}
+.shanghaiTower svg{width:100%;height:100%;overflow:visible;display:block}
+.tower-aura{
+  position:absolute;left:50%;top:160px;transform:translateX(-50%);
+  width:780px;height:780px;border-radius:50%;z-index:3;pointer-events:none;
+  background:radial-gradient(circle, rgba(122,200,210,.16) 0%, transparent 55%);
+}
+
+/* eye orb is drawn INSIDE the tower SVG (see .tower-eye <g>) — guaranteed alignment */
+.tower-eye{
+  transform-box:view-box;
+  transform-origin:190px 297px;   /* rope anchor point (under 125F floor) */
+  animation:eye-swing 4.2s ease-in-out infinite;
+}
+@keyframes eye-swing{
+  0%,100%{transform:rotate(3.5deg)}
+  50%{transform:rotate(-3.5deg)}
+}
+.eye-orb::after{
+  content:"";position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);
+  width:18px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);filter:blur(2px);
+}
+
+/* annotation labels around tower */
+.anno{position:absolute;z-index:10;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.anno .lead-svg{position:absolute}
+
+.specCard{
+  position:absolute;left:60px;top:300px;width:380px;z-index:10;
+  background:linear-gradient(160deg,rgba(243,233,210,.96),rgba(229,217,188,.93));
+  color:#1a2531;border-radius:6px;padding:24px 26px;
+  box-shadow:0 16px 40px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.5);
+  position:absolute;
+}
+.specCard::before{
+  content:"";position:absolute;top:-6px;left:24px;width:60px;height:12px;
+  background:var(--ink);
+  clip-path:polygon(0 0, 100% 0, 92% 100%, 50% 70%, 8% 100%);
+}
+.specCard h3{font-size:14px;letter-spacing:.32em;color:#7a5828;font-family:"Helvetica Neue",sans-serif;
+  border-bottom:1.5px solid rgba(120,90,50,.5);padding-bottom:10px;margin-bottom:14px}
+.specCard .row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;
+  border-bottom:1px dashed rgba(120,90,50,.3);font-size:14px}
+.specCard .row:last-child{border:none}
+.specCard .row span{color:#506578;letter-spacing:.04em}
+.specCard .row b{font-family:"Bodoni 72",serif;font-style:italic;font-weight:400;font-size:20px;color:var(--ink)}
+
+.featureCard{
+  position:absolute;width:380px;z-index:10;
+  background:linear-gradient(155deg,rgba(14,32,46,.92),rgba(10,24,36,.92));
+  border:1px solid rgba(231,182,86,.3);
+  border-radius:8px;padding:22px 24px;color:#dfe9ee;
+  box-shadow:0 14px 36px rgba(0,0,0,.5);
+}
+.featureCard.right{right:60px;top:300px}
+.featureCard.right2{right:60px;top:530px}
+.featureCard h3{font-size:15px;letter-spacing:.28em;color:var(--gold);
+  font-family:"Helvetica Neue",sans-serif;margin-bottom:12px;
+  border-bottom:1.5px solid rgba(231,182,86,.3);padding-bottom:8px}
+.featureCard h3 .zh{color:#fff;font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:16px;letter-spacing:.04em;margin-right:10px}
+.featureCard ul{list-style:none;padding:0}
+.featureCard ul li{font-size:13.5px;line-height:1.7;color:#bcd2dc;padding:4px 0 4px 18px;position:relative;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.featureCard ul li::before{content:"›";position:absolute;left:0;color:var(--gold);font-weight:700}
+
+.accelBar{
+  position:absolute;left:60px;bottom:200px;width:380px;z-index:10;
+  background:rgba(14,32,46,.92);border:1px dashed rgba(122,200,210,.3);
+  border-radius:6px;padding:16px 20px;color:#dfe9ee;
+}
+.accelBar h4{font-size:12px;letter-spacing:.28em;color:#7ac8d2;
+  font-family:"Helvetica Neue",sans-serif;margin-bottom:8px}
+.accelBar h4 .zh{color:#fff;font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  letter-spacing:.04em;margin-right:8px;font-size:14px}
+.accelBar svg{width:100%;height:80px;display:block}
+.accelBar .cap{display:flex;justify-content:space-between;font-size:11px;color:#bcd2dc;
+  margin-top:4px;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+
+/* wind glyphs */
+.windPack{
+  position:absolute;right:140px;top:170px;z-index:8;
+  display:flex;flex-direction:column;gap:10px;
+}
+.windPack .w{
+  font-size:13px;color:#9ec2d2;letter-spacing:.32em;text-align:right;
+  font-family:"Helvetica Neue",sans-serif;
+  padding:6px 14px;border:1px solid rgba(158,194,210,.25);border-radius:30px;
+  background:rgba(255,255,255,.03);
+}
+
+/* ============================================================
+   SCENE 4 · HANDS-ON
+   ============================================================ */
+.s4{
+  background:
+    radial-gradient(ellipse at 20% 30%, rgba(231,182,86,.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(196,122,58,.12) 0%, transparent 50%),
+    linear-gradient(170deg, #e9d9b5 0%, #d4be96 50%, #c4ab82 100%);
+}
+.s4 .paper-fold{
+  position:absolute;inset:0;pointer-events:none;opacity:.4;z-index:1;
+  background:
+    linear-gradient(90deg, transparent 0%, transparent 49.9%, rgba(120,90,50,.16) 50%, transparent 50.1%, transparent 100%),
+    repeating-linear-gradient(180deg, transparent 0px, transparent 80px, rgba(120,90,50,.05) 80px, rgba(120,90,50,.05) 81px);
+}
+.s4 .blueprint-grid{
+  position:absolute;inset:0;opacity:.12;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(80,60,30,.4) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(80,60,30,.4) 1px,transparent 1px);
+  background-size:40px 40px,40px 40px;
+}
+.s4 .corner-stamp{
+  position:absolute;right:60px;top:130px;width:120px;height:120px;
+  border:2.5px solid #7a5828;border-radius:50%;
+  display:grid;place-items:center;color:#7a5828;
+  font-family:"Helvetica Neue",sans-serif;letter-spacing:.32em;font-size:10px;
+  text-align:center;line-height:1.5;
+  transform:rotate(-12deg);opacity:.5;z-index:5;
+}
+.s4 .corner-stamp b{display:block;font-size:14px;letter-spacing:.1em;margin-bottom:2px;font-weight:700}
+
+.s4-head{position:absolute;left:60px;right:60px;top:118px;z-index:10;display:flex;justify-content:space-between;align-items:flex-end;color:#2e1d0a}
+.s4-head h1{font-size:80px;color:#2e1d0a}
+.s4-head h1 em{color:#a05a18}
+.s4-head h1 em::after{background:linear-gradient(90deg,transparent,#a05a18 30%,#a05a18 70%,transparent)}
+.s4-head .meta{text-align:right;color:#5e4220}
+.s4-head .meta h2{font-size:20px;margin-top:8px;color:#7a5828;letter-spacing:.12em;font-weight:400}
+
+.s4 .scene-counter{color:#7a5828}
+.s4 .scene-counter b{color:#3a2710}
+.s4 .brand-mark{color:#7a5828}
+.s4 .brand-mark b{color:#3a2710}
+
+/* experiment stage */
+.exp-stage{
+  position:absolute;left:60px;top:290px;width:780px;height:620px;z-index:8;
+  background:linear-gradient(165deg,#f6ecd3,#e6d3a7);
+  border:2px dashed #7a5828;border-radius:8px;
+  padding:30px;
+  box-shadow:0 14px 40px rgba(0,0,0,.25);
+}
+.exp-stage .label-top{
+  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
+  padding:6px 18px;background:#3a2710;color:#f6d365;
+  font-family:"Helvetica Neue",sans-serif;font-size:11px;letter-spacing:.32em;border-radius:3px;
+}
+.exp-stage .label-bot{
+  position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);
+  padding:6px 18px;background:#7a5828;color:#fff4dc;
+  font-family:"Helvetica Neue",sans-serif;font-size:11px;letter-spacing:.32em;border-radius:3px;
+}
+
+.exp-stage .desk{
+  position:absolute;left:30px;right:30px;bottom:30px;height:14px;
+  background:linear-gradient(180deg,#7a5828,#3a2710);border-radius:2px;
+  box-shadow:0 6px 14px rgba(0,0,0,.3);
+}
+.exp-stage .desk::after{
+  content:"";position:absolute;left:-6px;right:-6px;top:14px;height:6px;
+  background:#3a2710;opacity:.5;border-radius:3px;
+}
+
+/* cardboard tower */
+.exp-stage .modelBld{
+  position:absolute;left:200px;bottom:44px;width:130px;height:430px;
+  background:linear-gradient(90deg,#c79560 0%,#dca87a 30%,#dca87a 70%,#a17244 100%);
+  border:1.5px solid #7a5828;
+  animation:sway 3.4s ease-in-out infinite;
+  transform-origin:50% 100%;
+  box-shadow:inset 0 0 30px rgba(120,80,40,.4);
+}
+.exp-stage .modelBld::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:6px;
+  background:#7a5828;
+}
+.exp-stage .modelBld::after{
+  content:"";position:absolute;left:-12px;right:-12px;top:-12px;height:14px;
+  background:#5d3f1a;border:1.5px solid #3a2710;
+  box-shadow:0 4px 10px rgba(0,0,0,.3);
+}
+.exp-stage .modelBld .floor{
+  position:absolute;left:8%;right:8%;height:1px;background:rgba(60,40,15,.4);
+}
+.exp-stage .modelBld .floor.f1{top:14%}.exp-stage .modelBld .floor.f2{top:28%}
+.exp-stage .modelBld .floor.f3{top:42%}.exp-stage .modelBld .floor.f4{top:56%}
+.exp-stage .modelBld .floor.f5{top:70%}.exp-stage .modelBld .floor.f6{top:84%}
+
+.exp-stage .windows-grid{
+  position:absolute;inset:24px 10px;
+  display:grid;grid-template-columns:repeat(2,1fr);grid-auto-rows:18px;gap:8px 6px;
+}
+.exp-stage .windows-grid i{background:rgba(60,40,15,.45);border-radius:1px}
+
+/* hanging bottle */
+.exp-stage .hangArm{
+  position:absolute;left:265px;top:38px;width:0;height:108px;
+  border-left:1.5px solid #3a2710;
+  animation:counterpend 3.4s ease-in-out infinite;
+  transform-origin:top center;
+}
+.exp-stage .hangArm .bottle{
+  position:absolute;left:-26px;top:108px;width:54px;height:120px;
+}
+.exp-stage .hangArm .bottle .cap{
+  width:26px;height:10px;background:#3a8aa3;border-radius:3px 3px 1px 1px;margin:0 auto;
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,.3);
+}
+.exp-stage .hangArm .bottle .neck{
+  width:16px;height:10px;background:linear-gradient(90deg,rgba(255,255,255,.3),rgba(255,255,255,.05));
+  margin:0 auto;border-radius:0 0 4px 4px;
+}
+.exp-stage .hangArm .bottle .body{
+  position:relative;width:54px;height:90px;
+  background:linear-gradient(90deg,rgba(180,220,210,.65) 0%,rgba(140,200,190,.7) 50%,rgba(100,170,160,.55) 100%);
+  border:1px solid rgba(80,120,100,.55);border-radius:8px 8px 14px 14px;
+  box-shadow:inset 2px 2px 6px rgba(255,255,255,.4), inset -3px -3px 8px rgba(0,40,40,.25);
+  overflow:hidden;
+}
+.exp-stage .hangArm .bottle .body::before{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:65%;
+  background:linear-gradient(180deg,rgba(140,200,210,.6),rgba(70,140,150,.8));
+}
+.exp-stage .hangArm .bottle .body::after{
+  content:"";position:absolute;left:6px;top:8px;width:8px;height:60%;
+  background:linear-gradient(180deg,rgba(255,255,255,.6),transparent);
+  border-radius:4px;filter:blur(1px);
+}
+.exp-stage .hangArm .bottle .label{
+  position:absolute;left:6px;right:6px;top:34px;
+  background:rgba(255,250,235,.92);color:#7a5828;
+  font-family:"Helvetica Neue",sans-serif;font-size:9px;letter-spacing:.2em;
+  text-align:center;padding:3px 0;border:1px solid rgba(120,90,50,.4);
+  z-index:2;line-height:1.3;
+}
+
+/* fan */
+.exp-stage .fan{
+  position:absolute;right:46px;bottom:60px;width:90px;height:140px;
+}
+.exp-stage .fan .base{
+  position:absolute;left:5px;right:5px;bottom:0;height:8px;background:#3a2710;border-radius:3px;
+}
+.exp-stage .fan .stem{
+  position:absolute;left:50%;bottom:8px;width:5px;height:60px;background:#3a2710;
+  transform:translateX(-50%);
+}
+.exp-stage .fan .head{
+  position:absolute;left:50%;bottom:60px;transform:translateX(-50%);
+  width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,#5d3f1a 0%,#3a2710 70%,#241608 100%);
+  border:2px solid #3a2710;
+  box-shadow:inset 0 0 14px rgba(0,0,0,.6);
+}
+.exp-stage .fan .blades{
+  position:absolute;inset:6px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,#7a5828 0deg 12deg, #3a2710 12deg 60deg);
+  animation:spin 1.2s linear infinite;
+}
+.exp-stage .fan .center{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:14px;height:14px;border-radius:50%;background:#f6d365;
+  box-shadow:inset 0 0 3px rgba(0,0,0,.4);
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* wind from fan */
+.exp-stage .windline{
+  position:absolute;right:140px;bottom:120px;width:230px;height:30px;z-index:3;
+}
+.exp-stage .windline span{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:36px;height:1.5px;background:linear-gradient(90deg,transparent,#7a5828);
+  animation:windFlow 1.4s linear infinite;
+}
+.exp-stage .windline span:nth-child(1){animation-delay:0s;top:6px}
+.exp-stage .windline span:nth-child(2){animation-delay:.2s;top:14px}
+.exp-stage .windline span:nth-child(3){animation-delay:.4s;top:22px}
+.exp-stage .windline span:nth-child(4){animation-delay:.6s;top:18px}
+
+/* steps panel */
+.steps{
+  position:absolute;right:60px;top:290px;width:980px;z-index:10;
+}
+.steps .lead{
+  font-size:15px;line-height:1.7;color:#3a2710;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  background:rgba(255,250,235,.62);
+  border:1px dashed #7a5828;border-radius:6px;
+  padding:14px 18px;margin-bottom:18px;
+}
+.stepGrid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:14px;
+}
+.step{
+  background:linear-gradient(165deg,rgba(255,247,224,.95),rgba(243,228,194,.95));
+  border:1px solid rgba(120,90,50,.5);
+  border-radius:6px;padding:18px 20px;color:#2e1d0a;position:relative;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+.step::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:5px;
+  background:linear-gradient(180deg,var(--rust),var(--amber));border-radius:6px 0 0 6px;
+}
+.step .n{
+  position:absolute;right:14px;top:10px;
+  font-family:"Bodoni 72",serif;font-style:italic;font-size:46px;font-weight:200;
+  color:rgba(160,90,24,.35);line-height:1;
+}
+.step h3{font-size:17px;letter-spacing:.04em;margin-bottom:6px;color:#2e1d0a}
+.step p{font-size:13px;line-height:1.65;color:#3a2710;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.step.wide{grid-column:1/3;background:linear-gradient(165deg,#3a2710,#1e1408);color:var(--cream)}
+.step.wide h3{color:#f6d365}
+.step.wide p{color:#e6d3a7}
+.step.wide::before{background:var(--gold)}
+.step.wide .n{color:rgba(246,211,101,.25)}
+
+.formula-card{
+  margin-top:14px;background:rgba(58,39,16,.92);color:var(--cream);
+  border:1.5px dashed rgba(246,211,101,.5);border-radius:6px;
+  padding:14px 20px;display:flex;align-items:center;gap:20px;
+}
+.formula-card .eq{
+  font-family:"Cambria Math","Latin Modern Math","Times New Roman",serif;
+  font-size:26px;color:var(--gold);font-style:italic;letter-spacing:.04em;flex-shrink:0;
+}
+.formula-card .eq sup{font-size:14px;vertical-align:super}
+.formula-card .ds{font-size:12.5px;line-height:1.6;color:#e6d3a7;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+
+/* ============================================================
+   SCENE 5 · MARS · OUTPOST
+   ============================================================ */
+.s5{
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(231,140,86,.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 80%, rgba(120,40,20,.6) 0%, transparent 55%),
+    linear-gradient(180deg, #1a0d10 0%, #3a1810 30%, #6e2a14 60%, #c4602e 92%, #d97a3a 100%);
+}
+.s5 .stars{position:absolute;inset:0;opacity:.4;pointer-events:none}
+.s5 .planet-earth{
+  position:absolute;left:80px;top:180px;width:54px;height:54px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#7ec2e6 0%,#3a7da3 50%,#0a2a45 100%);
+  box-shadow:0 0 24px rgba(122,200,230,.5), inset -8px -8px 14px rgba(0,0,0,.5);
+  z-index:6;
+}
+.s5 .planet-earth .label{
+  position:absolute;left:60px;top:18px;font-size:11px;color:#bcd2dc;letter-spacing:.32em;
+  font-family:"Helvetica Neue",sans-serif;white-space:nowrap;
+}
+.s5 .orbit-line{
+  position:absolute;left:108px;top:208px;width:580px;height:1px;
+  background:linear-gradient(90deg,rgba(255,200,140,.4),transparent);
+  transform:rotate(8deg);z-index:5;
+}
+.s5 .orbit-line::after{
+  content:"";position:absolute;right:0;top:-3px;width:8px;height:8px;border-radius:50%;
+  background:radial-gradient(circle at 30% 30%,#e7b656,#8a3818);
+  box-shadow:0 0 12px rgba(231,140,86,.7);
+}
+
+.s5-head{position:absolute;left:60px;right:60px;top:118px;z-index:10;display:flex;justify-content:space-between;align-items:flex-end}
+.s5-head h1{font-size:80px;color:#fff4dc;text-shadow:0 4px 30px rgba(0,0,0,.6)}
+.s5-head h1 em{color:#f6d365}
+.s5-head .meta{text-align:right;color:#ffd0a0}
+.s5-head .meta h2{font-size:20px;margin-top:8px;color:#f6d365;letter-spacing:.12em;font-weight:400}
+.s5 .scene-counter{color:#ffd0a0}
+.s5 .scene-counter b{color:#fff4dc}
+
+.mars-banner{
+  position:absolute;left:50%;top:230px;transform:translateX(-50%);z-index:9;
+  display:flex;align-items:center;gap:14px;
+  font-size:14px;letter-spacing:.5em;color:#ffe9c0;
+  font-family:"Helvetica Neue",sans-serif;
+}
+.mars-banner::before,.mars-banner::after{
+  content:"";display:block;width:80px;height:1px;
+  background:linear-gradient(90deg,transparent,#ffe9c0,transparent);
+}
+
+/* mars tower */
+.marsTower{
+  position:absolute;left:50%;top:320px;transform:translateX(-50%);
+  width:160px;height:520px;z-index:6;
+  filter:drop-shadow(0 18px 30px rgba(0,0,0,.5));
+}
+.marsTower .ant{
+  position:absolute;left:50%;top:-30px;transform:translateX(-50%);
+  width:3px;height:50px;background:linear-gradient(180deg,#fff4dc,#a05a18);
+}
+.marsTower .light{
+  position:absolute;left:50%;top:-36px;transform:translateX(-50%);
+  width:10px;height:10px;border-radius:50%;background:#7ad7ce;
+  box-shadow:0 0 16px #7ad7ce;animation:shimmer 1.5s ease-in-out infinite;
+}
+.marsTower .crown{
+  position:absolute;left:50%;top:14px;transform:translateX(-50%);
+  width:90px;height:36px;
+  background:linear-gradient(180deg,#e6c590,#a8804a);
+  clip-path:polygon(15% 0, 85% 0, 100% 100%, 0 100%);
+  border:1px solid #3a2710;
+}
+.marsTower .body{
+  position:absolute;left:50%;top:50px;transform:translateX(-50%);
+  width:118px;height:420px;
+  background:linear-gradient(90deg,#8a4a20 0%, #c47a3a 35%, #c47a3a 65%, #6a3a18 100%);
+  border:1.5px solid #2e1408;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.4), inset 0 4px 10px rgba(255,200,140,.3);
+}
+.marsTower .body::before{
+  content:"";position:absolute;left:8px;right:8px;top:14px;bottom:14px;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 26px, rgba(0,0,0,.25) 26px 28px),
+    repeating-linear-gradient(90deg, transparent 0 12px, rgba(0,0,0,.18) 12px 13px);
+}
+.marsTower .body::after{
+  content:"";position:absolute;left:50%;transform:translateX(-50%);
+  bottom:0;width:140px;height:14px;background:#2e1408;border-radius:3px;
+}
+
+/* swinging mass — placed INSIDE .marsTower .body, so it can never exit the tower */
+.marsTower .body .swing-orb{
+  position:absolute;left:50%;top:50px;
+  width:0;height:90px;border-left:1px dashed rgba(255,244,220,.55);
+  z-index:3;animation:pendulum 5s ease-in-out infinite;transform-origin:top center;
+  pointer-events:none;
+}
+.marsTower .body .swing-orb::after{
+  content:"";position:absolute;left:-18px;top:88px;width:36px;height:36px;border-radius:50%;
+  background:radial-gradient(ellipse at 30% 25%,#fff5d2 0%,#f6d365 30%,#a06028 100%);
+  box-shadow:0 0 16px rgba(246,211,101,.55), inset -5px -6px 12px rgba(0,0,0,.4);
+}
+
+.marsGround{
+  position:absolute;left:0;right:0;bottom:90px;height:280px;z-index:4;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,200,120,.25) 0%, transparent 60%),
+    linear-gradient(180deg, #8a3818 0%, #5e1e0e 60%, #2a0f08 100%);
+}
+.marsGround::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:80px;
+  background:linear-gradient(180deg, rgba(255,180,100,.3), transparent);
+}
+.marsGround::after{
+  content:"";position:absolute;left:0;right:0;top:-2px;height:6px;
+  background:linear-gradient(180deg, rgba(255,210,140,.6), transparent);
+  filter:blur(2px);
+}
+
+.rock{position:absolute;background:#3a1810;border-radius:50%;z-index:5}
+.rock.r1{left:380px;bottom:140px;width:36px;height:14px;box-shadow:0 4px 6px rgba(0,0,0,.4)}
+.rock.r2{left:480px;bottom:120px;width:22px;height:8px}
+.rock.r3{right:380px;bottom:160px;width:42px;height:18px;box-shadow:0 4px 6px rgba(0,0,0,.4)}
+.rock.r4{right:520px;bottom:130px;width:24px;height:10px}
+.rock.r5{left:240px;bottom:108px;width:14px;height:5px}
+.rock.r6{right:240px;bottom:108px;width:16px;height:6px}
+
+/* dust drift */
+.dust{position:absolute;inset:0 0 90px 0;pointer-events:none;z-index:7;overflow:hidden}
+.dust i{position:absolute;width:60px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,220,170,.5),transparent);
+  animation:dust 14s linear infinite;}
+.dust i:nth-child(1){top:30%;animation-delay:0s}
+.dust i:nth-child(2){top:42%;animation-delay:2s}
+.dust i:nth-child(3){top:55%;animation-delay:4s}
+.dust i:nth-child(4){top:65%;animation-delay:6s}
+.dust i:nth-child(5){top:75%;animation-delay:8s}
+.dust i:nth-child(6){top:36%;animation-delay:10s}
+
+/* mars info cards */
+.marsCard{
+  position:absolute;width:300px;z-index:10;
+  background:linear-gradient(160deg,rgba(28,12,8,.92),rgba(40,18,10,.92));
+  border:1px solid rgba(246,211,101,.35);
+  border-radius:8px;padding:18px 20px;color:#ffe9c0;
+  box-shadow:0 14px 36px rgba(0,0,0,.55);
+}
+.marsCard::before{
+  content:"";position:absolute;top:-1px;left:14px;width:40px;height:3px;background:var(--gold);
+}
+.marsCard h3{font-size:16px;letter-spacing:.06em;color:#f6d365;margin-bottom:10px;
+  border-bottom:1px dashed rgba(246,211,101,.3);padding-bottom:6px}
+.marsCard ul{list-style:none}
+.marsCard ul li{font-size:13px;line-height:1.7;color:#e6d3a7;padding:3px 0 3px 16px;position:relative;
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.marsCard ul li::before{content:"◦";position:absolute;left:0;color:var(--gold)}
+.marsCard p{font-size:13px;line-height:1.7;color:#e6d3a7;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.marsCard.cardA{left:60px;top:340px}
+.marsCard.cardB{left:60px;top:600px}
+.marsCard.cardC{right:60px;top:340px}
+.marsCard.cardD{right:60px;top:600px}
+
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="bg-grid"></div>
-  <div class="bg-noise"></div>
-  <div class="bg-particles">
-    <span style="left:10%;top:20%;animation-delay:0s"></span>
-    <span style="left:25%;top:60%;animation-delay:2s"></span>
-    <span style="left:40%;top:30%;animation-delay:4s"></span>
-    <span style="left:60%;top:70%;animation-delay:1s"></span>
-    <span style="left:75%;top:40%;animation-delay:3s"></span>
-    <span style="left:90%;top:80%;animation-delay:5s"></span>
+<div class="stage">
+
+  <canvas id="grain"></canvas>
+
+  <button class="arrow-btn arrow-prev" id="prevBtn" aria-label="上一章">‹</button>
+  <button class="arrow-btn arrow-next" id="nextBtn" aria-label="下一章">›</button>
+
+  <div class="viewport" id="viewport">
+
+  <!-- ============================================================ -->
+  <!-- SCENE 1 · HISTORICAL ORIGINS                                 -->
+  <!-- ============================================================ -->
+  <section class="scene s1 active" data-idx="0">
+    <div class="blueprint-grid"></div>
+    <svg class="starfield" viewBox="0 0 1920 1080">
+      <g fill="#dfe9ee">
+        <circle cx="120" cy="80" r="1"/><circle cx="280" cy="190" r=".8" opacity=".6"/>
+        <circle cx="540" cy="60" r="1.2"/><circle cx="780" cy="140" r=".7" opacity=".7"/>
+        <circle cx="1100" cy="90" r="1"/><circle cx="1380" cy="170" r=".8"/>
+        <circle cx="1620" cy="60" r="1.2" opacity=".8"/><circle cx="1820" cy="140" r=".7"/>
+        <circle cx="200" cy="280" r=".7" opacity=".5"/><circle cx="900" cy="240" r="1" opacity=".7"/>
+        <circle cx="1500" cy="280" r=".7" opacity=".5"/><circle cx="1750" cy="220" r=".9" opacity=".7"/>
+      </g>
+    </svg>
+
+    <svg class="compass-rose" viewBox="0 0 110 110">
+      <g stroke="#dfe9ee" fill="none" stroke-width="1">
+        <circle cx="55" cy="55" r="50"/><circle cx="55" cy="55" r="38" stroke-dasharray="2 3"/>
+        <line x1="55" y1="5" x2="55" y2="105" stroke-width=".8"/>
+        <line x1="5" y1="55" x2="105" y2="55" stroke-width=".8"/>
+        <polygon points="55,8 50,55 60,55" fill="#dfe9ee"/>
+        <polygon points="55,102 50,55 60,55" fill="#7a93a4"/>
+      </g>
+      <text x="55" y="20" fill="#dfe9ee" text-anchor="middle" font-size="9" font-family="Helvetica Neue">N</text>
+    </svg>
+
+    <div class="scene-counter in fromL"><b>01</b>HISTORICAL ORIGINS</div>
+    <div class="brand-mark in fromR"><b>TUNED MASS DAMPER</b>调谐质量阻尼器 · 风暴中的静止者</div>
+
+    <header class="s1-header">
+      <h1 class="title-zh in fromL">阻尼器的<em>百年演化</em></h1>
+      <div class="meta in fromR">
+        <div class="kicker">CHAPTER ONE</div>
+        <h2>重量的巧妙运用</h2>
+        <div class="sub">FROM A STEAMSHIP TO THE SKYLINE · 1909 — 2008</div>
+      </div>
+    </header>
+
+    <div class="subhead in d1">从远洋蒸汽船的减摇水箱 · 到摩天大楼的金色钢球 · 同一组数学守护人的安宁</div>
+
+    <div class="rail in d1"></div>
+    <div class="rail-ticks in d1"><i></i><i></i><i></i><i></i><i></i></div>
+
+    <div class="winds in d2"><i></i><i></i><i></i><i></i></div>
+
+    <div class="timeline">
+
+      <!-- 1909 弗拉姆 -->
+      <div class="tcard in d2">
+        <div class="ribbon">1909</div>
+        <div class="ttl">弗拉姆的<br>"减摇水箱"</div>
+        <div class="where">FRAHM · GERMANY</div>
+        <p>德国工程师赫尔曼·弗拉姆为远洋蒸汽船设计了一对充水水箱，让海浪推船时水流反向"挤"回去 —— 调谐质量的雏形。数学正确，却沉睡了 60 年。</p>
+        <div class="ill">
+          <svg viewBox="0 0 220 160" width="220" height="160">
+            <!-- waves -->
+            <path d="M0,128 Q30,118 60,128 T120,128 T180,128 T240,128" stroke="#6d9bb0" stroke-width="1.6" fill="none" opacity=".7"/>
+            <path d="M0,138 Q30,132 60,138 T120,138 T180,138 T240,138" stroke="#6d9bb0" stroke-width="1.4" fill="none" opacity=".5"/>
+            <path d="M0,148 Q30,144 60,148 T120,148 T180,148 T240,148" stroke="#6d9bb0" stroke-width="1.2" fill="none" opacity=".35"/>
+            <!-- ship hull -->
+            <g transform="translate(28,72) rotate(-3 90 30)">
+              <path d="M0,30 Q10,46 30,52 L150,52 Q170,46 180,30 Z" fill="#5d3f1a" stroke="#2e1d0a" stroke-width="1.3"/>
+              <path d="M0,30 L180,30" stroke="#3a2710" stroke-width="1"/>
+              <!-- deck -->
+              <rect x="18" y="10" width="148" height="20" fill="#e6c590" stroke="#3a2710" stroke-width="1"/>
+              <!-- portholes -->
+              <circle cx="40" cy="40" r="3" fill="#9ec2d2" stroke="#3a2710"/>
+              <circle cx="60" cy="40" r="3" fill="#9ec2d2" stroke="#3a2710"/>
+              <circle cx="80" cy="40" r="3" fill="#9ec2d2" stroke="#3a2710"/>
+              <circle cx="100" cy="40" r="3" fill="#9ec2d2" stroke="#3a2710"/>
+              <circle cx="120" cy="40" r="3" fill="#9ec2d2" stroke="#3a2710"/>
+              <circle cx="140" cy="40" r="3" fill="#9ec2d2" stroke="#3a2710"/>
+              <!-- bridge/cabin -->
+              <rect x="70" y="-18" width="42" height="28" fill="#d9b682" stroke="#3a2710"/>
+              <rect x="78" y="-12" width="8" height="8" fill="#7eb0c4" stroke="#3a2710"/>
+              <rect x="96" y="-12" width="8" height="8" fill="#7eb0c4" stroke="#3a2710"/>
+              <!-- smokestack -->
+              <rect x="60" y="-46" width="10" height="32" fill="#3a2710"/>
+              <ellipse cx="65" cy="-46" rx="6" ry="2" fill="#3a2710"/>
+              <!-- smoke -->
+              <ellipse cx="68" cy="-54" rx="6" ry="3" fill="#a8a8a8" opacity=".6"/>
+              <ellipse cx="75" cy="-60" rx="4" ry="2.5" fill="#a8a8a8" opacity=".4"/>
+              <!-- mast -->
+              <line x1="115" y1="-32" x2="115" y2="10" stroke="#3a2710" stroke-width="1.5"/>
+              <line x1="115" y1="-30" x2="135" y2="-12" stroke="#3a2710" stroke-width="1"/>
+              <circle cx="115" cy="-35" r="2" fill="#cc5c2a"/>
+            </g>
+            <!-- water tank arrow inside hull -->
+            <g stroke="#c98a2c" fill="none" stroke-width="1.2">
+              <path d="M80,128 Q108,120 130,128" stroke-dasharray="3 3"/>
+              <polygon points="130,128 124,124 124,132" fill="#c98a2c"/>
+            </g>
+            <text x="158" y="125" font-size="9" fill="#7a5828" font-family="Helvetica Neue" letter-spacing=".15em">ANTI-ROLL</text>
+          </svg>
+        </div>
+        <div class="footnote"><span>PATENT</span><span>SHIP STABILIZER</span></div>
+      </div>
+
+      <!-- 1976 Hancock -->
+      <div class="tcard in d3">
+        <div class="ribbon">1976</div>
+        <div class="ttl">波士顿<br>汉考克大厦</div>
+        <div class="where">BOSTON · 60F</div>
+        <p>剧烈风致摇晃使顶层窗玻璃多次掉落。设计师在 58 层加装两个 300 吨铅钢箱漂浮于油膜之上 —— 让"调谐"理念第一次进入摩天大楼。</p>
+        <div class="ill">
+          <svg viewBox="0 0 220 200" width="220" height="200">
+            <!-- ground -->
+            <line x1="20" y1="190" x2="200" y2="190" stroke="#3a2710" stroke-width="1.5"/>
+            <line x1="20" y1="192" x2="200" y2="192" stroke="#7a5828" stroke-width=".6" stroke-dasharray="2 3"/>
+            <!-- building -->
+            <g style="animation:sway 4s ease-in-out infinite;transform-origin:110px 190px">
+              <rect x="80" y="20" width="60" height="170" fill="#7fa0b0" stroke="#1a2531" stroke-width="1.2"/>
+              <!-- glass facade lines -->
+              <g stroke="#1a2531" stroke-width=".4" opacity=".6">
+                <line x1="80" y1="40" x2="140" y2="40"/><line x1="80" y1="60" x2="140" y2="60"/>
+                <line x1="80" y1="80" x2="140" y2="80"/><line x1="80" y1="100" x2="140" y2="100"/>
+                <line x1="80" y1="120" x2="140" y2="120"/><line x1="80" y1="140" x2="140" y2="140"/>
+                <line x1="80" y1="160" x2="140" y2="160"/>
+                <line x1="95" y1="20" x2="95" y2="190"/><line x1="110" y1="20" x2="110" y2="190"/><line x1="125" y1="20" x2="125" y2="190"/>
+              </g>
+              <!-- TMD level -->
+              <rect x="80" y="56" width="60" height="6" fill="#c98a2c" stroke="#3a2710" stroke-width=".8"/>
+              <text x="146" y="62" font-size="8" fill="#3a2710" font-family="Helvetica Neue">58F · TMD</text>
+              <!-- missing glass dot -->
+              <rect x="118" y="100" width="6" height="6" fill="#f3e9d2"/>
+            </g>
+            <!-- falling glass -->
+            <g fill="#9ec2d2" stroke="#3a2710" stroke-width=".5">
+              <rect x="58" y="148" width="5" height="5" transform="rotate(15 60 150)"/>
+              <rect x="48" y="170" width="4" height="4" transform="rotate(-10 50 172)"/>
+              <rect x="40" y="184" width="3" height="3" transform="rotate(25 42 186)"/>
+            </g>
+            <!-- wind -->
+            <g stroke="#506578" fill="none" stroke-width="1" stroke-linecap="round">
+              <path d="M10,60 Q40,55 60,60" stroke-dasharray="2 3"/>
+              <polygon points="60,60 55,57 55,63" fill="#506578"/>
+              <path d="M10,90 Q40,84 56,90" stroke-dasharray="2 3"/>
+              <polygon points="56,90 51,87 51,93" fill="#506578"/>
+            </g>
+          </svg>
+        </div>
+        <div class="footnote"><span>HANCOCK TOWER</span><span>2×300 TON</span></div>
+      </div>
+
+      <!-- 1977 Citicorp -->
+      <div class="tcard in d4">
+        <div class="ribbon">1977</div>
+        <div class="ttl">纽约<br>花旗银行中心</div>
+        <div class="where">NEW YORK · 59F</div>
+        <p>第一座<b>从设计之初</b>就内置 TMD 的摩天大楼。400 吨混凝土块漂浮于油膜上，由弹簧约束。开启"TMD 标配化"的工程范式。</p>
+        <div class="ill">
+          <svg viewBox="0 0 220 200" width="220" height="200">
+            <line x1="20" y1="190" x2="200" y2="190" stroke="#3a2710" stroke-width="1.5"/>
+            <g style="animation:sway 4.6s ease-in-out infinite;transform-origin:110px 190px">
+              <!-- angular top -->
+              <polygon points="80,30 140,30 140,12 100,12" fill="#9ec2d2" stroke="#1a2531" stroke-width="1.2"/>
+              <rect x="80" y="30" width="60" height="160" fill="#8aa9b8" stroke="#1a2531" stroke-width="1.2"/>
+              <!-- horizontal stripes -->
+              <g stroke="#1a2531" stroke-width=".5" opacity=".55">
+                <line x1="80" y1="50" x2="140" y2="50"/><line x1="80" y1="70" x2="140" y2="70"/>
+                <line x1="80" y1="90" x2="140" y2="90"/><line x1="80" y1="110" x2="140" y2="110"/>
+                <line x1="80" y1="130" x2="140" y2="130"/><line x1="80" y1="150" x2="140" y2="150"/>
+                <line x1="80" y1="170" x2="140" y2="170"/>
+              </g>
+              <!-- stilts -->
+              <line x1="92" y1="190" x2="92" y2="200" stroke="#1a2531" stroke-width="2.5"/>
+              <line x1="128" y1="190" x2="128" y2="200" stroke="#1a2531" stroke-width="2.5"/>
+              <!-- TMD on top -->
+              <rect x="92" y="22" width="36" height="10" fill="#c98a2c" stroke="#3a2710"/>
+              <rect x="98" y="14" width="24" height="8" fill="#e7b656" stroke="#3a2710" stroke-width=".8"/>
+              <text x="146" y="22" font-size="8" fill="#3a2710" font-family="Helvetica Neue">63F · TMD</text>
+              <!-- springs -->
+              <g stroke="#3a2710" stroke-width=".8" fill="none">
+                <path d="M96,32 q1,2 -2,3 t2,3 t-2,3"/>
+                <path d="M124,32 q1,2 -2,3 t2,3 t-2,3"/>
+              </g>
+            </g>
+            <!-- wind streaks -->
+            <g stroke="#506578" fill="none" stroke-width="1" stroke-linecap="round">
+              <path d="M14,50 Q40,46 56,50" stroke-dasharray="2 3"/>
+              <polygon points="56,50 51,47 51,53" fill="#506578"/>
+              <path d="M14,80 Q40,75 56,80" stroke-dasharray="2 3"/>
+              <polygon points="56,80 51,77 51,83" fill="#506578"/>
+            </g>
+          </svg>
+        </div>
+        <div class="footnote"><span>CITICORP</span><span>400 TON</span></div>
+      </div>
+
+      <!-- 2004 Taipei 101 -->
+      <div class="tcard in d5">
+        <div class="ribbon">2004</div>
+        <div class="ttl">中国台湾<br>台北 101</div>
+        <div class="where">TAIPEI · 89F</div>
+        <p>"可见的巨人"：660 吨金色钢球公开展示。台风与地震期间它的摆动视频在网络疯传 —— 第一次让大众真正看见、并理解了调谐质量阻尼器。</p>
+        <div class="ill">
+          <svg viewBox="0 0 220 230" width="220" height="230">
+            <line x1="20" y1="220" x2="200" y2="220" stroke="#3a2710" stroke-width="1.5"/>
+            <g style="animation:sway 5s ease-in-out infinite;transform-origin:110px 220px">
+              <!-- antenna -->
+              <line x1="110" y1="14" x2="110" y2="-12" stroke="#3a2710" stroke-width="2.5"/>
+              <circle cx="110" cy="-12" r="2.5" fill="#cc5c2a"/>
+              <!-- top pinnacle -->
+              <polygon points="100,30 120,30 116,14 104,14" fill="#7fa0b0" stroke="#1a2531"/>
+              <!-- segments -->
+              <g stroke="#1a2531" stroke-width="1" fill="#88b3c7">
+                <polygon points="92,52 128,52 132,32 88,32"/>
+                <polygon points="88,76 132,76 134,56 86,56"/>
+                <polygon points="86,100 134,100 136,80 84,80"/>
+                <polygon points="84,124 136,124 138,104 82,104"/>
+                <polygon points="82,148 138,148 140,128 80,128"/>
+                <polygon points="80,172 140,172 142,152 78,152"/>
+                <polygon points="78,196 142,196 144,176 76,176"/>
+              </g>
+              <!-- base -->
+              <rect x="74" y="196" width="72" height="24" fill="#5d7785" stroke="#1a2531"/>
+              <!-- gold ball -->
+              <circle cx="110" cy="100" r="13" fill="url(#goldGrad)" stroke="#7a5828" stroke-width="1"/>
+              <defs>
+                <radialGradient id="goldGrad" cx="35%" cy="30%">
+                  <stop offset="0" stop-color="#fff5d2"/>
+                  <stop offset=".35" stop-color="#f6d365"/>
+                  <stop offset="1" stop-color="#8a5818"/>
+                </radialGradient>
+              </defs>
+              <!-- rope -->
+              <line x1="102" y1="56" x2="108" y2="88" stroke="#7a5828" stroke-width=".8"/>
+              <line x1="110" y1="56" x2="110" y2="88" stroke="#7a5828" stroke-width=".8"/>
+              <line x1="118" y1="56" x2="112" y2="88" stroke="#7a5828" stroke-width=".8"/>
+            </g>
+            <!-- label arrow -->
+            <g stroke="#7a5828" fill="none" stroke-width=".8">
+              <path d="M150,108 L172,108" stroke-dasharray="2 2"/>
+            </g>
+            <text x="174" y="106" font-size="9" fill="#7a5828" font-family="Helvetica Neue">660 t</text>
+            <text x="174" y="118" font-size="8" fill="#7a5828" font-family="Helvetica Neue">GOLD ORB</text>
+          </svg>
+        </div>
+        <div class="footnote"><span>TAIPEI 101</span><span>660 TON</span></div>
+      </div>
+
+      <!-- teaser: Shanghai -->
+      <div class="tcard teaser in d6">
+        <div class="ribbon">2008</div>
+        <div class="ttl">下一站<br>上海中心 · 慧眼</div>
+        <div class="where">SHANGHAI · 125F</div>
+        <p>永磁体涡流阻尼 + 1000 吨摆体。从此告别液压油的烦恼 —— 零电力 · 无接触 · 无液体 —— 开启绿色减振时代。</p>
+        <div class="ill">
+          <svg viewBox="0 0 220 230" width="220" height="230">
+            <!-- shanghai tower spiral silhouette -->
+            <g style="filter:drop-shadow(0 0 14px rgba(246,211,101,.3))">
+              <path d="M70,210 C40,170 50,120 75,80 C90,55 105,30 110,10 C115,30 130,55 145,80 C170,120 180,170 150,210 Z"
+                    fill="rgba(246,211,101,.18)" stroke="#f6d365" stroke-width="1.5"/>
+              <!-- floor lines -->
+              <g stroke="rgba(246,211,101,.4)" stroke-width=".5" fill="none">
+                <line x1="62" y1="180" x2="158" y2="180"/>
+                <line x1="65" y1="155" x2="155" y2="155"/>
+                <line x1="70" y1="130" x2="150" y2="130"/>
+                <line x1="76" y1="105" x2="144" y2="105"/>
+                <line x1="84" y1="80" x2="136" y2="80"/>
+                <line x1="92" y1="55" x2="128" y2="55"/>
+                <line x1="100" y1="35" x2="120" y2="35"/>
+              </g>
+              <!-- gold orb inside -->
+              <ellipse cx="110" cy="120" rx="14" ry="20" fill="url(#goldGrad2)" stroke="#7a5828"/>
+              <defs>
+                <radialGradient id="goldGrad2" cx="40%" cy="30%">
+                  <stop offset="0" stop-color="#fff5d2"/>
+                  <stop offset=".4" stop-color="#f6d365"/>
+                  <stop offset="1" stop-color="#6e4a16"/>
+                </radialGradient>
+              </defs>
+              <!-- ropes -->
+              <line x1="98" y1="80" x2="106" y2="100" stroke="#a8a8a8" stroke-width=".7"/>
+              <line x1="110" y1="80" x2="110" y2="100" stroke="#a8a8a8" stroke-width=".7"/>
+              <line x1="122" y1="80" x2="114" y2="100" stroke="#a8a8a8" stroke-width=".7"/>
+            </g>
+          </svg>
+        </div>
+        <div class="footnote"><span>EDDY-CURRENT</span><span>1000 TON</span></div>
+      </div>
+    </div>
+
+    <div class="footer-band">
+      <span class="dot"></span>
+      <span>TIMELINE 1909 — 2008</span>
+      <div class="div"></div>
+      <span>WIND · EARTHQUAKE · INERTIA</span>
+      <div class="div"></div>
+      <span>www.tmd-chronicle</span>
+      <span class="dot"></span>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SCENE 2 · PRINCIPLE                                          -->
+  <!-- ============================================================ -->
+  <section class="scene s2" data-idx="1">
+    <div class="blueprint-grid"></div>
+    <div class="bg-word">TMD</div>
+
+    <div class="scene-counter in fromL"><b>02</b>PRINCIPLE ANALYSIS</div>
+    <div class="brand-mark in fromR"><b>反相位的舞蹈</b>COUNTER-PHASE · ENERGY HARVESTING</div>
+
+    <header class="s2-head">
+      <h1 class="title-zh in fromL">原理 · <em>反相位的舞蹈</em></h1>
+      <div class="meta in fromR">
+        <div class="kicker kicker-amber">CHAPTER TWO</div>
+        <h2>MASS · SPRING · DAMPER</h2>
+        <div class="sub" style="font-size:12px;color:#7ac8d2;margin-top:6px;letter-spacing:.22em">为什么一个会动的"额外质量"，反而能让大楼安静</div>
+      </div>
+    </header>
+
+    <!-- main 2DOF diagram -->
+    <div class="diagram in d1 fromL">
+      <svg viewBox="0 0 780 530">
+        <defs>
+          <linearGradient id="bldGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#7fa0b0"/><stop offset="1" stop-color="#3a5d6e"/>
+          </linearGradient>
+          <linearGradient id="m2Grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f6d365"/><stop offset="1" stop-color="#c98a2c"/>
+          </linearGradient>
+          <pattern id="hatch" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(-45)">
+            <line x1="0" y1="0" x2="0" y2="8" stroke="#7ac8d2" stroke-width="1"/>
+          </pattern>
+        </defs>
+
+        <!-- ground hatched -->
+        <rect x="40" y="450" width="700" height="20" fill="url(#hatch)" opacity=".5"/>
+        <line x1="40" y1="450" x2="740" y2="450" stroke="#7ac8d2" stroke-width="2"/>
+
+        <!-- building m1 -->
+        <g style="animation:sway 4s ease-in-out infinite;transform-origin:280px 450px">
+          <rect x="200" y="140" width="160" height="310" fill="url(#bldGrad)" stroke="#7ac8d2" stroke-width="1.5"/>
+          <g stroke="rgba(255,255,255,.18)" stroke-width="1">
+            <line x1="200" y1="180" x2="360" y2="180"/>
+            <line x1="200" y1="220" x2="360" y2="220"/>
+            <line x1="200" y1="260" x2="360" y2="260"/>
+            <line x1="200" y1="300" x2="360" y2="300"/>
+            <line x1="200" y1="340" x2="360" y2="340"/>
+            <line x1="200" y1="380" x2="360" y2="380"/>
+            <line x1="200" y1="420" x2="360" y2="420"/>
+            <line x1="240" y1="140" x2="240" y2="450" stroke-width=".5"/>
+            <line x1="280" y1="140" x2="280" y2="450" stroke-width=".5"/>
+            <line x1="320" y1="140" x2="320" y2="450" stroke-width=".5"/>
+          </g>
+          <!-- m1 label -->
+          <rect x="222" y="240" width="116" height="32" fill="#0e1c2b" stroke="#7ac8d2"/>
+          <text x="280" y="262" text-anchor="middle" fill="#fff" font-size="18" font-family="Helvetica Neue" letter-spacing=".06em">m₁  建筑物</text>
+          <!-- TMD m2 hanging inside top -->
+          <g style="animation:counterpend 4s ease-in-out infinite;transform-origin:280px 160px">
+            <line x1="280" y1="160" x2="280" y2="200" stroke="#a8a8a8" stroke-width="1.5"/>
+            <rect x="252" y="200" width="56" height="36" rx="2" fill="url(#m2Grad)" stroke="#7a5828" stroke-width="1.5"/>
+            <text x="280" y="223" text-anchor="middle" fill="#3a2710" font-size="14" font-family="Helvetica Neue" font-weight="700">m₂</text>
+          </g>
+        </g>
+
+        <!-- arrow showing main motion -->
+        <g stroke="#7ac8d2" fill="none" stroke-width="1.5">
+          <path d="M120,200 L186,200" stroke-dasharray="4 4"/>
+          <polygon points="186,200 178,195 178,205" fill="#7ac8d2"/>
+        </g>
+        <text x="78" y="195" fill="#7ac8d2" font-size="14" font-family="Helvetica Neue" letter-spacing=".1em">x₁(t)</text>
+        <text x="78" y="212" fill="#7ac8d2" font-size="11" font-family="PingFang SC">主结构位移</text>
+
+        <!-- counter arrow -->
+        <g stroke="#f6d365" fill="none" stroke-width="1.5">
+          <path d="M660,240 L592,240" stroke-dasharray="4 4"/>
+          <polygon points="592,240 600,235 600,245" fill="#f6d365"/>
+        </g>
+        <text x="600" y="235" fill="#f6d365" font-size="14" font-family="Helvetica Neue" letter-spacing=".1em">x₂(t) ← 反相</text>
+        <text x="600" y="252" fill="#f6d365" font-size="11" font-family="PingFang SC">辅助质量位移</text>
+
+        <!-- callout to spring -->
+        <g stroke="#7ac8d2" fill="none" stroke-width=".8">
+          <path d="M380,180 Q450,140 510,180" stroke-dasharray="3 3"/>
+        </g>
+        <text x="430" y="135" fill="#7ac8d2" font-size="12" font-family="Helvetica Neue">SPRING k₂</text>
+        <text x="436" y="152" fill="#dfe9ee" font-size="11" font-family="PingFang SC">弹簧 — 调谐频率</text>
+
+        <!-- callout to damper -->
+        <g stroke="#f6d365" fill="none" stroke-width=".8">
+          <path d="M380,220 Q440,300 510,220" stroke-dasharray="3 3"/>
+        </g>
+        <text x="430" y="318" fill="#f6d365" font-size="12" font-family="Helvetica Neue">DAMPER c₂</text>
+        <text x="430" y="334" fill="#dfe9ee" font-size="11" font-family="PingFang SC">阻尼器 — 把动能换成热</text>
+
+        <!-- wind on left -->
+        <g stroke="#9ec2d2" fill="none" stroke-width="1.2">
+          <path d="M30,100 Q70,90 110,100" stroke-dasharray="3 3"/>
+          <polygon points="110,100 102,96 102,104" fill="#9ec2d2"/>
+          <path d="M30,130 Q70,120 110,130" stroke-dasharray="3 3"/>
+          <polygon points="110,130 102,126 102,134" fill="#9ec2d2"/>
+          <path d="M30,160 Q70,150 110,160" stroke-dasharray="3 3"/>
+          <polygon points="110,160 102,156 102,164" fill="#9ec2d2"/>
+        </g>
+        <text x="40" y="80" fill="#9ec2d2" font-size="11" font-family="Helvetica Neue" letter-spacing=".18em">WIND</text>
+
+        <!-- ground label -->
+        <text x="390" y="495" text-anchor="middle" fill="#7ac8d2" font-size="11" font-family="Helvetica Neue" letter-spacing=".32em">FOUNDATION · k₁ , c₁</text>
+
+        <!-- scale callout under -->
+        <g stroke="#dfe9ee" fill="none" stroke-width=".6" opacity=".5">
+          <line x1="40" y1="510" x2="40" y2="520"/><line x1="40" y1="515" x2="100" y2="515"/>
+          <line x1="100" y1="510" x2="100" y2="520"/>
+        </g>
+        <text x="70" y="528" fill="#dfe9ee" font-size="9" text-anchor="middle" font-family="Helvetica Neue" opacity=".6">SCALE</text>
+      </svg>
+    </div>
+
+    <div class="right-col">
+      <div class="energy-card in d2 fromR">
+        <h3>共振 → 反相位 → 能量被抽走</h3>
+        <p class="lead">当建筑以自然频率振动时，调谐质量永远以"错误的方向、错误的时间"运动。它把动能从主结构里偷走，转化成自身的运动与阻尼器内部的摩擦热。</p>
+        <div class="curves">
+          <svg viewBox="0 0 600 230" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#f56960"/><stop offset="1" stop-color="#f08a3b"/></linearGradient>
+              <linearGradient id="g2" x1="0" x2="1"><stop offset="0" stop-color="#7ad7ce"/><stop offset="1" stop-color="#3da7c0"/></linearGradient>
+            </defs>
+            <!-- grid -->
+            <g stroke="rgba(255,255,255,.06)" stroke-width="1">
+              <line x1="0" y1="40" x2="600" y2="40"/>
+              <line x1="0" y1="115" x2="600" y2="115" stroke="rgba(255,255,255,.2)" stroke-dasharray="3 4"/>
+              <line x1="0" y1="190" x2="600" y2="190"/>
+            </g>
+            <!-- without TMD -->
+            <path d="M0 115 Q 20 30 40 115 T 80 115 T 120 115 T 160 115 T 200 115 T 240 115 T 280 115 T 320 115 T 360 115 T 400 115 T 440 115 T 480 115 T 520 115 T 560 115 T 600 115"
+                  fill="none" stroke="url(#g1)" stroke-width="2.5"/>
+            <!-- with TMD -->
+            <path d="M0 115 Q 20 50 40 115 Q 60 165 80 115 Q 100 95 120 115 Q 140 128 160 115 Q 180 108 200 115 Q 220 120 240 115 Q 260 112 280 115 Q 300 117 320 115 Q 340 114 360 115 Q 380 116 400 115 Q 420 115 440 115 L 600 115"
+                  fill="none" stroke="url(#g2)" stroke-width="2.5"/>
+            <!-- axis labels -->
+            <text x="6" y="30" fill="#7a93a4" font-size="10" font-family="Helvetica Neue">amplitude</text>
+            <text x="540" y="210" fill="#7a93a4" font-size="10" font-family="Helvetica Neue">time →</text>
+            <!-- annotation -->
+            <g stroke="#7ad7ce" fill="none" stroke-width=".7">
+              <line x1="180" y1="60" x2="220" y2="35" stroke-dasharray="2 2"/>
+            </g>
+            <text x="222" y="34" fill="#7ad7ce" font-size="10" font-family="Helvetica Neue">TMD damps it out</text>
+          </svg>
+        </div>
+        <div class="curve-legend">
+          <span><i style="background:#f08a3b"></i>无 TMD · 自然衰减</span>
+          <span><i style="background:#7ad7ce"></i>有 TMD · 快速归零</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="points in d3 fromR">
+      <div class="pt">
+        <div class="pn">01</div>
+        <h4>调谐 · TUNING</h4>
+        <p>把 m₂ 的固有频率 ω₂ 调到接近主体的 ω₁，让它对相同的"节拍"敏感。</p>
+      </div>
+      <div class="pt">
+        <div class="pn">02</div>
+        <h4>反相 · COUNTER-PHASE</h4>
+        <p>弹簧 + 阻尼器让 m₂ 的运动滞后约 90°~180°，每个周期都"逆着"主体。</p>
+      </div>
+      <div class="pt">
+        <div class="pn">03</div>
+        <h4>耗能 · DISSIPATION</h4>
+        <p>动能流入 TMD 后通过阻尼摩擦或涡流化为热，最终建筑趋于静止。</p>
+      </div>
+    </div>
+
+    <div class="eq-badge in d4">
+      <div class="label">OPTIMAL TUNING · DEN HARTOG</div>
+      <em>ω₂ / ω₁</em>  ≈  <em>1 / (1 + μ)</em>　<span style="color:#7a93a4">,&nbsp;</span>
+      <em>ζ₂</em>  ≈  <em>√( 3μ / 8(1+μ)³ )</em>
+    </div>
+
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SCENE 3 · SHANGHAI · EYE                                     -->
+  <!-- ============================================================ -->
+  <section class="scene s3" data-idx="2">
+    <svg class="city-skyline" viewBox="0 0 1920 220" preserveAspectRatio="none">
+      <g fill="#0a1422" stroke="#1a2531">
+        <rect x="0" y="120" width="80" height="100"/>
+        <rect x="100" y="80" width="40" height="140"/>
+        <rect x="160" y="100" width="60" height="120"/>
+        <rect x="240" y="60" width="36" height="160"/>
+        <rect x="300" y="110" width="56" height="110"/>
+        <rect x="380" y="70" width="44" height="150"/>
+        <rect x="460" y="90" width="80" height="130"/>
+        <rect x="560" y="50" width="40" height="170"/>
+        <rect x="640" y="100" width="56" height="120"/>
+        <rect x="1300" y="70" width="40" height="150"/>
+        <rect x="1380" y="100" width="56" height="120"/>
+        <rect x="1460" y="80" width="40" height="140"/>
+        <rect x="1520" y="60" width="60" height="160"/>
+        <rect x="1620" y="90" width="44" height="130"/>
+        <rect x="1700" y="110" width="80" height="110"/>
+        <rect x="1820" y="80" width="60" height="140"/>
+      </g>
+    </svg>
+    <svg class="city-lights" viewBox="0 0 1920 180">
+      <g fill="#f6d365" opacity=".7">
+        <circle cx="120" cy="130" r="1"/><circle cx="180" cy="110" r="1"/><circle cx="220" cy="150" r="1"/>
+        <circle cx="320" cy="130" r="1"/><circle cx="400" cy="100" r="1"/><circle cx="510" cy="120" r="1"/>
+        <circle cx="600" cy="80" r="1"/><circle cx="680" cy="140" r="1"/>
+        <circle cx="1340" cy="100" r="1"/><circle cx="1420" cy="130" r="1"/>
+        <circle cx="1540" cy="90" r="1"/><circle cx="1640" cy="120" r="1"/><circle cx="1720" cy="140" r="1"/>
+        <circle cx="1840" cy="110" r="1"/>
+      </g>
+    </svg>
+
+    <div class="scene-counter in fromL"><b>03</b>SHANGHAI · EYE</div>
+    <div class="brand-mark in fromR"><b>慧眼 · SHANGHAI TOWER</b>632 m · 125F · 永磁体涡流阻尼器</div>
+
+    <header class="s3-head">
+      <h1 class="title-zh in fromL">上海中心 · <em>慧眼</em></h1>
+      <div class="meta in fromR">
+        <div class="kicker kicker-amber">CHAPTER THREE</div>
+        <h2>THE EYE OF SHANGHAI</h2>
+        <div class="sub">PERMANENT MAGNETS · EDDY CURRENT · ZERO POWER</div>
+      </div>
+    </header>
+
+    <div class="tower-aura in d3"></div>
+    <div class="shanghaiTower in d2">
+      <svg viewBox="-20 -50 420 920" preserveAspectRatio="xMidYMin meet">
+        <defs>
+          <linearGradient id="towerG" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#3a5d6e"/>
+            <stop offset=".4" stop-color="#8ab3c3"/>
+            <stop offset=".6" stop-color="#7fa0b0"/>
+            <stop offset="1" stop-color="#2c4c5f"/>
+          </linearGradient>
+          <linearGradient id="towerEdge" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="rgba(255,235,180,.55)"/>
+            <stop offset=".4" stop-color="rgba(255,255,255,.18)"/>
+            <stop offset="1" stop-color="rgba(255,255,255,.04)"/>
+          </linearGradient>
+          <linearGradient id="windowGlow" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="rgba(246,211,101,.0)"/>
+            <stop offset="1" stop-color="rgba(246,211,101,.18)"/>
+          </linearGradient>
+          <radialGradient id="orbGradInside" cx="35%" cy="28%">
+            <stop offset="0" stop-color="#fff5d2"/>
+            <stop offset=".3" stop-color="#f6d365"/>
+            <stop offset=".7" stop-color="#d99c34"/>
+            <stop offset="1" stop-color="#6e4a16"/>
+          </radialGradient>
+        </defs>
+        <!-- twist silhouette -->
+        <path d="M120,860 C40,720 60,520 100,330 C130,180 170,80 190,0 C210,80 250,180 280,330 C320,520 340,720 260,860 Z"
+              fill="url(#towerG)" stroke="rgba(255,255,255,.2)" stroke-width="1.2"/>
+        <!-- inner spine -->
+        <line x1="190" y1="0" x2="190" y2="860" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
+        <line x1="60" y1="860" x2="190" y2="40" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 4"/>
+        <line x1="320" y1="860" x2="190" y2="40" stroke="rgba(255,255,255,.12)" stroke-dasharray="3 4"/>
+
+        <!-- horizontal floor bands -->
+        <g stroke="rgba(255,225,150,.22)" stroke-width=".8">
+          <line x1="74" y1="780" x2="306" y2="780"/>
+          <line x1="68" y1="730" x2="312" y2="730"/>
+          <line x1="74" y1="680" x2="306" y2="680"/>
+          <line x1="80" y1="630" x2="300" y2="630"/>
+          <line x1="86" y1="580" x2="294" y2="580"/>
+          <line x1="92" y1="530" x2="288" y2="530"/>
+          <line x1="100" y1="480" x2="280" y2="480"/>
+          <line x1="108" y1="430" x2="272" y2="430"/>
+          <line x1="116" y1="380" x2="264" y2="380"/>
+          <line x1="124" y1="330" x2="256" y2="330"/>
+          <line x1="134" y1="280" x2="246" y2="280"/>
+          <line x1="142" y1="230" x2="238" y2="230"/>
+          <line x1="152" y1="180" x2="228" y2="180"/>
+          <line x1="160" y1="130" x2="220" y2="130"/>
+          <line x1="170" y1="80" x2="210" y2="80"/>
+        </g>
+        <!-- window glow -->
+        <path d="M120,860 C40,720 60,520 100,330 C130,180 170,80 190,0 C210,80 250,180 280,330 C320,520 340,720 260,860 Z"
+              fill="url(#windowGlow)"/>
+        <!-- highlight edge -->
+        <path d="M120,860 C40,720 60,520 100,330 C130,180 170,80 190,0" fill="none" stroke="url(#towerEdge)" stroke-width="2"/>
+        <!-- antenna -->
+        <line x1="190" y1="0" x2="190" y2="-44" stroke="#a3c0d1" stroke-width="3"/>
+        <circle cx="190" cy="-48" r="3" fill="#cc5c2a"/>
+
+        <!-- 125F marker -->
+        <g>
+          <line x1="78" y1="285" x2="302" y2="285" stroke="#f6d365" stroke-dasharray="4 4" stroke-width="1"/>
+          <text x="316" y="289" fill="#f6d365" font-size="14" font-family="Helvetica Neue" letter-spacing=".22em">125F</text>
+        </g>
+        <!-- 125F floor highlight -->
+        <rect x="150" y="270" width="80" height="30" fill="rgba(246,211,101,.1)" stroke="rgba(246,211,101,.4)" stroke-dasharray="2 2"/>
+
+        <!-- ===== THE EYE · pendulum inside tower at 125F ===== -->
+        <g class="tower-eye-static">
+          <!-- magnet ring on floor underside (visual cue) -->
+          <rect x="170" y="298" width="40" height="3" fill="#c98a2c" opacity=".85"/>
+          <rect x="172" y="301" width="36" height="2" fill="#6e4a16" opacity=".7"/>
+        </g>
+        <g class="tower-eye">
+          <!-- 12 cables -->
+          <g stroke="#b8a37a" stroke-width=".8" fill="none" opacity=".9">
+            <line x1="172" y1="297" x2="180" y2="332"/>
+            <line x1="180" y1="297" x2="184" y2="332"/>
+            <line x1="188" y1="297" x2="188" y2="332"/>
+            <line x1="192" y1="297" x2="192" y2="332"/>
+            <line x1="200" y1="297" x2="196" y2="332"/>
+            <line x1="208" y1="297" x2="200" y2="332"/>
+          </g>
+          <!-- pendulum orb -->
+          <ellipse cx="190" cy="362" rx="22" ry="30"
+                   fill="url(#orbGradInside)" stroke="#6e4a16" stroke-width=".6"/>
+          <!-- highlight -->
+          <ellipse cx="182" cy="350" rx="5" ry="3" fill="rgba(255,255,255,.55)"/>
+          <!-- subtle glow halo -->
+          <ellipse cx="190" cy="362" rx="32" ry="40" fill="rgba(246,211,101,.10)"/>
+        </g>
+
+        <!-- ===== ANNOTATIONS · drawn in the SAME SVG so they ALIGN with the tower & orb ===== -->
+        <g class="tower-anno" stroke="#f6d365" fill="none" stroke-width=".9" font-family="Helvetica Neue, Arial, sans-serif">
+          <!-- LEFT: copper / orb body -->
+          <path d="M168,362 L40,420" stroke-dasharray="3 3"/>
+          <circle cx="40" cy="420" r="3" fill="#f6d365"/>
+          <path d="M40,420 L-180,420"/>
+          <text x="-195" y="416" font-size="16" fill="#f6d365" text-anchor="end" letter-spacing=".15em">铜板 COPPER</text>
+          <text x="-195" y="438" font-size="12" fill="#f6d365" text-anchor="end" font-family="PingFang SC,Microsoft YaHei,sans-serif">摆体内部 · 涡流感应区</text>
+
+          <!-- RIGHT: magnet ring at 125F floor -->
+          <path d="M212,362 L340,420" stroke-dasharray="3 3"/>
+          <circle cx="340" cy="420" r="3" fill="#f6d365"/>
+          <path d="M340,420 L560,420"/>
+          <text x="575" y="416" font-size="16" fill="#f6d365" letter-spacing=".15em">钕铁硼磁阵</text>
+          <text x="575" y="438" font-size="12" fill="#f6d365" font-family="PingFang SC,Microsoft YaHei,sans-serif">125F 平台底部</text>
+
+          <!-- TOP: 12 cables -->
+          <path d="M190,294 L190,240" stroke-dasharray="3 3"/>
+          <text x="190" y="228" font-size="15" fill="#f6d365" text-anchor="middle" letter-spacing=".3em">12 × 缆绳</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- annotations moved INSIDE tower SVG above to guarantee perfect alignment -->
+
+
+    <div class="windPack in d5">
+      <div class="w">高空风 · WIND</div>
+      <div class="w">湍流剪切 · SHEAR</div>
+      <div class="w">建筑物绕流 · WAKE</div>
+      <div class="w">涡街脱落 · VORTEX</div>
+    </div>
+
+    <div class="specCard in d2 fromL">
+      <h3>KEY SPECS · 关键规格</h3>
+      <div class="row"><span>塔高 HEIGHT</span><b>632 m</b></div>
+      <div class="row"><span>楼层 FLOORS</span><b>128</b></div>
+      <div class="row"><span>阻尼器位置</span><b>125 F</b></div>
+      <div class="row"><span>摆体质量 MASS</span><b>≈ 1000 t</b></div>
+      <div class="row"><span>设计摆幅</span><b>± 2 m</b></div>
+      <div class="row"><span>立面扭转</span><b>120 ° 螺旋</b></div>
+      <div class="row"><span>启用 OPENED</span><b>2016</b></div>
+    </div>
+
+    <div class="featureCard right in d3 fromR">
+      <h3><span class="zh">涡流效应</span>EDDY CURRENT</h3>
+      <ul>
+        <li>导体在磁场中运动 · 感应出微小圆形涡流</li>
+        <li>涡流产生反向磁场 · 对运动施加阻尼力</li>
+        <li>动能在铜板内部直接转化为热能</li>
+        <li>非接触 · 无磨损 — 真正零维护</li>
+      </ul>
+    </div>
+
+    <div class="featureCard right2 in d4 fromR">
+      <h3><span class="zh">钕铁硼永磁阵列</span>ZERO POWER</h3>
+      <ul>
+        <li>无需电力 · 无液压 · 无接触</li>
+        <li>静音运行 · 预期寿命 50 年以上</li>
+        <li>仅需防潮防锈即可终身工作</li>
+        <li>125F 公共艺术品 · 风暴的节拍器</li>
+      </ul>
+    </div>
+
+    <div class="accelBar in d5 fromL">
+      <h4><span class="zh">利奇马台风</span>2019 · TYPHOON LEKIMA</h4>
+      <svg viewBox="0 0 380 80" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="redG" x1="0" x2="1"><stop offset="0" stop-color="#f56960"/><stop offset="1" stop-color="#f08a3b"/></linearGradient>
+          <linearGradient id="greenG" x1="0" x2="1"><stop offset="0" stop-color="#7ad7ce"/><stop offset="1" stop-color="#4fa394"/></linearGradient>
+        </defs>
+        <line x1="0" y1="40" x2="380" y2="40" stroke="rgba(255,255,255,.15)" stroke-dasharray="3 4"/>
+        <path d="M0,40 Q 8,4 16,40 T 32,40 T 48,40 T 64,40 T 80,40 T 96,40 T 112,40 T 128,40 T 144,40 T 160,40" stroke="url(#redG)" stroke-width="2.5" fill="none"/>
+        <path d="M160,40 Q 170,28 180,40 Q 190,50 200,40 Q 210,36 220,40 Q 230,44 240,40 Q 250,38 260,40 Q 270,42 280,40 Q 290,38 300,40 Q 310,41 320,40 Q 330,39 340,40 Q 350,40 360,40 L380,40" stroke="url(#greenG)" stroke-width="2.5" fill="none"/>
+        <text x="36" y="72" font-size="10" fill="#f08a3b" font-family="PingFang SC">高幅振荡</text>
+        <text x="240" y="72" font-size="10" fill="#7ad7ce" font-family="PingFang SC">阻尼介入后</text>
+      </svg>
+      <div class="cap"><span>不适摆动 ↓ 约 50%</span><span>低于人类感知阈值</span></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SCENE 4 · HANDS-ON · DIY                                     -->
+  <!-- ============================================================ -->
+  <section class="scene s4" data-idx="3">
+    <div class="paper-fold"></div>
+    <div class="blueprint-grid"></div>
+    <div class="corner-stamp"><div><b>DIY · 01</b>HOME LAB<br>EXPERIMENT</div></div>
+
+    <div class="scene-counter in fromL"><b>04</b>HANDS-ON · DIY</div>
+    <div class="brand-mark in fromR"><b>书桌上的慧眼</b>500ML BOTTLE × CARDBOARD TOWER</div>
+
+    <header class="s4-head">
+      <h1 class="title-zh in fromL">在书桌上 · <em>造一座慧眼</em></h1>
+      <div class="meta in fromR">
+        <div class="kicker" style="color:#7a5828">CHAPTER FOUR</div>
+        <h2 style="color:#7a5828">A POCKET-SIZED TMD</h2>
+      </div>
+    </header>
+
+    <!-- 实验装置图 -->
+    <div class="exp-stage in d2 fromL">
+      <div class="label-top">EXPERIMENTAL SETUP · 实验装置</div>
+      <div class="label-bot">SCALE 1 : 1 · 比例参考</div>
+
+      <!-- the model building -->
+      <div class="modelBld" id="modelBld">
+        <div class="windows-grid">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+        <div class="floor f1"></div><div class="floor f2"></div><div class="floor f3"></div>
+        <div class="floor f4"></div><div class="floor f5"></div><div class="floor f6"></div>
+      </div>
+
+      <!-- hanging bottle (counter-phase) -->
+      <div class="hangArm">
+        <div class="bottle">
+          <div class="cap"></div>
+          <div class="neck"></div>
+          <div class="body">
+            <div class="label">TMD<br>500 ml<br>H₂O</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- annotation arrows inside stage -->
+      <svg style="position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 720 560">
+        <g stroke="#7a5828" fill="none" stroke-width=".8">
+          <path d="M160,80 L220,80 L240,100" stroke-dasharray="3 3"/>
+          <circle cx="240" cy="100" r="3" fill="#7a5828"/>
+        </g>
+        <text x="40" y="76" font-size="11" fill="#7a5828" font-family="Helvetica Neue" letter-spacing=".22em">FIXED ANCHOR</text>
+        <text x="40" y="90" font-size="10" fill="#7a5828" font-family="PingFang SC">塔顶悬挂点</text>
+
+        <g stroke="#7a5828" fill="none" stroke-width=".8">
+          <path d="M380,200 L460,200" stroke-dasharray="3 3"/>
+          <circle cx="380" cy="200" r="3" fill="#7a5828"/>
+        </g>
+        <text x="462" y="196" font-size="11" fill="#7a5828" font-family="Helvetica Neue" letter-spacing=".22em">PENDULUM MASS</text>
+        <text x="462" y="210" font-size="10" fill="#7a5828" font-family="PingFang SC">摆体 m₂ · 500 ml 水瓶</text>
+
+        <g stroke="#7a5828" fill="none" stroke-width=".8">
+          <path d="M220,400 L160,400" stroke-dasharray="3 3"/>
+          <circle cx="220" cy="400" r="3" fill="#7a5828"/>
+        </g>
+        <text x="40" y="396" font-size="11" fill="#7a5828" font-family="Helvetica Neue" letter-spacing=".22em">CARDBOARD TOWER</text>
+        <text x="40" y="410" font-size="10" fill="#7a5828" font-family="PingFang SC">m₁ · 主结构</text>
+
+        <g stroke="#7a5828" fill="none" stroke-width=".8">
+          <path d="M580,360 L640,360" stroke-dasharray="3 3"/>
+          <circle cx="580" cy="360" r="3" fill="#7a5828"/>
+        </g>
+        <text x="642" y="356" font-size="11" fill="#7a5828" font-family="Helvetica Neue" letter-spacing=".22em">FAN · WIND</text>
+        <text x="642" y="370" font-size="10" fill="#7a5828" font-family="PingFang SC">小风扇 · 扰动源</text>
+      </svg>
+
+      <div class="windline">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="fan">
+        <div class="head">
+          <div class="blades"></div>
+          <div class="center"></div>
+        </div>
+        <div class="stem"></div>
+        <div class="base"></div>
+      </div>
+      <div class="desk"></div>
+    </div>
+
+    <!-- 5 steps -->
+    <div class="steps">
+      <p class="lead in d1 fromR">用一只装了 1/2 ~ 2/3 水的 500 ml 矿泉水瓶模拟摆体，吊在硬纸板搭的"小高楼"上，吹动风扇即可看到瓶子<b>反向</b>摆动、楼模型迅速归静。</p>
+
+      <div class="stepGrid">
+        <div class="step in d2 fromR">
+          <div class="n">1</div>
+          <h3>搭建"小高楼"</h3>
+          <p>用硬纸板或泡沫板做一栋 50~60 cm 高的窄塔，底部用胶布固定到桌面，顶部预留一个"屋顶平台"。</p>
+        </div>
+        <div class="step in d3 fromR">
+          <div class="n">2</div>
+          <h3>制作摆体</h3>
+          <p>500 ml 矿泉水瓶装入 1/2 ~ 2/3 水，用细绳从瓶盖打结悬挂，调整长度 L —— 它决定固有周期 T = 2π√(L/g)。</p>
+        </div>
+        <div class="step in d4 fromR">
+          <div class="n">3</div>
+          <h3>挂载并调谐</h3>
+          <p>绳的另一端固定在塔顶平台正中。轻推楼顶测得它自由摆动的周期，再调整 L 让瓶子的周期与之一致 —— 这就是"调谐"。</p>
+        </div>
+        <div class="step in d5 fromR">
+          <div class="n">4</div>
+          <h3>风扇制造扰动</h3>
+          <p>用小风扇正对塔身吹风，对照"装/不装瓶子"两次实验：去掉瓶子时塔大幅摇晃；装上后摆动幅度显著变小。</p>
+        </div>
+        <div class="step wide in d6 fromR">
+          <div class="n">5</div>
+          <h3>定量观察 · 让科学说话</h3>
+          <p>用手机慢动作拍摄塔顶位置估算振幅衰减比。<b>增加</b>瓶内水量 → m₂ 越大效果越强；<b>偏离</b>调谐绳长 → 效果迅速变差 —— 这正是"调谐"二字的精髓。</p>
+        </div>
+      </div>
+
+      <div class="formula-card in d7 fromR">
+        <div class="eq">T = 2π · √(L / g)</div>
+        <div class="ds">单摆周期 · g ≈ 9.81 m/s²。若小高楼自由摆动周期约 0.9 s，将 L 调整到约 20 cm 即可让瓶子产生最佳反相耗能效果。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- SCENE 5 · MARS · OUTPOST                                     -->
+  <!-- ============================================================ -->
+  <section class="scene s5" data-idx="4">
+    <svg class="stars" viewBox="0 0 1920 1080">
+      <g fill="#ffe9c0">
+        <circle cx="80" cy="60" r=".8"/><circle cx="240" cy="100" r="1"/><circle cx="420" cy="50" r=".7"/>
+        <circle cx="640" cy="140" r="1"/><circle cx="880" cy="80" r=".8"/><circle cx="1120" cy="120" r=".7"/>
+        <circle cx="1360" cy="60" r="1"/><circle cx="1580" cy="100" r=".8"/><circle cx="1800" cy="140" r="1"/>
+        <circle cx="160" cy="180" r=".6"/><circle cx="700" cy="220" r=".7"/><circle cx="1240" cy="200" r=".6"/>
+        <circle cx="1700" cy="240" r=".7"/>
+      </g>
+    </svg>
+
+    <div class="planet-earth">
+      <div class="label">EARTH · 地球</div>
+    </div>
+    <div class="orbit-line"></div>
+
+    <div class="scene-counter in fromL"><b>05</b>MARS · OUTPOST</div>
+    <div class="brand-mark in fromR"><b>异星之塔</b>HABITAT TOWER 01 · 火星殖民地</div>
+
+    <header class="s5-head">
+      <h1 class="title-zh in fromL">异星之塔 · <em>对抗火震与尘暴</em></h1>
+      <div class="meta in fromR">
+        <div class="kicker kicker-amber">CHAPTER FIVE</div>
+        <h2>STILL. SAFE. SUSTAINABLE.</h2>
+      </div>
+    </header>
+
+    <div class="mars-banner in d2">火星殖民地 · 栖息之塔 01</div>
+
+    <div class="marsTower in d3">
+      <span class="ant"></span>
+      <span class="light"></span>
+      <div class="crown"></div>
+      <div class="body">
+        <!-- pendulum mass INSIDE the tower body — guaranteed to stay inside -->
+        <div class="swing-orb"></div>
+      </div>
+    </div>
+
+    <div class="marsGround"></div>
+    <div class="rock r1 in d2"></div>
+    <div class="rock r2 in d2"></div>
+    <div class="rock r3 in d3"></div>
+    <div class="rock r4 in d3"></div>
+    <div class="rock r5"></div>
+    <div class="rock r6"></div>
+
+    <div class="dust">
+      <i></i><i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <div class="marsCard cardA in d3 fromL">
+      <h3>为什么不用液压？</h3>
+      <ul>
+        <li>火星 −125 °C 长夜 · 油液会冻结</li>
+        <li>0.6% 大气压 · 密封件几乎必漏</li>
+        <li>近真空环境 · 加速橡胶老化</li>
+        <li>从地球补一桶液压油 · 数百万美元</li>
+      </ul>
+    </div>
+
+    <div class="marsCard cardB in d4 fromL">
+      <h3>多用途质量块</h3>
+      <ul>
+        <li>① 水库 · 居民饮用与备用</li>
+        <li>② 辐射屏蔽 · 厚水层挡宇宙线</li>
+        <li>③ 热惯性 · 平滑昼夜剧烈温差</li>
+        <li>④ 同时是 TMD —— 一物四用</li>
+      </ul>
+    </div>
+
+    <div class="marsCard cardC in d3 fromR">
+      <h3>涡流阻尼 · 唯一选择</h3>
+      <ul>
+        <li>无电力 · 钕铁硼磁体被动工作</li>
+        <li>无液体 · 真空与极寒中稳定</li>
+        <li>无接触 · 数百万周期免维护</li>
+        <li>故障模式只剩"防锈"一项</li>
+      </ul>
+    </div>
+
+    <div class="marsCard cardD in d4 fromR">
+      <h3>一百年的工程基因</h3>
+      <p>1909 年的航海减摇箱 → 上海慧眼的涡流阻尼 → 火星栖息塔的多功能水库摆。穿越六千万公里 · 仍是同一组数学守护人的安宁。</p>
+    </div>
+  </section>
+
   </div>
 
-  <!-- 导航栏 -->
   <nav class="nav">
-    <div class="nav-logo">调谐质量阻尼器科普</div>
-    <div class="nav-links">
-      <button class="nav-btn active" data-page="home">首页</button>
-      <button class="nav-btn" data-page="theory">原理</button>
-      <button class="nav-btn" data-page="shanghai">上海中心</button>
-      <button class="nav-btn" data-page="damper">阻尼器</button>
-      <button class="nav-btn" data-page="application">应用</button>
-      <button class="nav-btn" data-page="advantage">优势</button>
-      <button class="nav-btn" data-page="data">数据</button>
-      <button class="nav-btn" data-page="future">展望</button>
-    </div>
+    <span class="nav-decor">· · · · ·</span>
+    <div class="nav-item active" data-go="0"><span class="num">01</span>历史起源</div>
+    <div class="nav-item" data-go="1"><span class="num">02</span>原理分析</div>
+    <div class="nav-item" data-go="2"><span class="num">03</span>上海慧眼</div>
+    <div class="nav-item" data-go="3"><span class="num">04</span>装置实践</div>
+    <div class="nav-item" data-go="4"><span class="num">05</span>火星之塔</div>
   </nav>
 
-  <!-- 页面1: 首页 -->
-  <section class="page active" id="home">
-    <div class="hero">
-      <div class="hero-badge">🔬 工程科技科普</div>
-      <h1>调谐质量阻尼器<br><span>摩天大楼的定海神针</span></h1>
-      <p>探索上海中心大厦125层、重达1000吨的巨型阻尼器如何守护中国最高建筑<br>抵御台风与地震，让千米高楼在狂风中依然稳如泰山</p>
-      <div class="hero-cta">
-        <button class="btn-primary" onclick="showPage('theory')">探索原理</button>
-        <button class="btn-secondary" onclick="showPage('shanghai')">观看演示</button>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <div class="tower-mini">
-        <div class="damper-pulse">阻尼器</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面2: 原理 -->
-  <section class="page" id="theory">
-    <div class="theory">
-      <div class="theory-left">
-        <h2>调谐质量阻尼器<span>工作原理</span></h2>
-        <p class="subtitle">Tuned Mass Damper (阻尼器) — 建筑减震的核心科技</p>
-        
-        <div class="principle-cards">
-          <div class="p-card">
-            <h3>反相位振动抵消</h3>
-            <p>当建筑因风力或地震产生晃动时，阻尼器会以相反的相位摆动，产生与建筑运动方向相反的惯性力，从而抵消振动能量。</p>
-          </div>
-          <div class="p-card">
-            <h3>频率调谐匹配</h3>
-            <p>阻尼器的质量、弹簧刚度和阻尼系数经过精确计算，使其固有频率与建筑的主振动频率一致，实现共振能量转移。</p>
-          </div>
-          <div class="p-card">
-            <h3>能量耗散机制</h3>
-            <p>通过液压阻尼器或粘滞阻尼器将机械振动能量转化为热能散发，逐步减小振幅，保护建筑结构安全。</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="theory-right">
-        <div class="physics-diagram">
-          <div class="building-sway">
-            <div class="building-body"></div>
-            <div class="mass-block">阻尼器</div>
-            <div class="spring-visual"></div>
-            <div class="connection-point"></div>
-          </div>
-          <div class="force-arrow">
-            <div class="arrow-line"></div>
-            <div class="force-label">风荷载</div>
-          </div>
-          <div class="physics-legend">
-            <div class="legend-item">
-              <div class="legend-color" style="background:var(--cyan-2)"></div>
-              <span>建筑主体</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-color" style="background:var(--gold)"></div>
-              <span>阻尼器质量块</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-color" style="background:var(--red)"></div>
-              <span>外部作用力</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面3: 上海中心 -->
-  <section class="page" id="shanghai">
-    <div class="shanghai">
-      <div class="shanghai-header">
-        <div>
-          <h2>上海中心大厦<span>阻尼器</span></h2>
-        </div>
-        <div class="building-stats">
-          <div class="stat-item">
-            <div class="stat-value">632<span style="font-size:18px">m</span></div>
-            <div class="stat-label">建筑高度</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">1000<span style="font-size:18px">t</span></div>
-            <div class="stat-label">阻尼器质量</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value">125<span style="font-size:18px">F</span></div>
-            <div class="stat-label">安装楼层</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="shanghai-content">
-        <div class="tower-section">
-          <svg class="tower-svg" viewBox="0 0 200 600">
-            <defs>
-              <linearGradient id="towerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style="stop-color:#0d1730"/>
-                <stop offset="50%" style="stop-color:#1a2a4a"/>
-                <stop offset="100%" style="stop-color:#0d1730"/>
-              </linearGradient>
-            </defs>
-            <!-- 建筑轮廓 -->
-            <path class="tower-outline" d="M100,20 L140,80 L140,580 L60,580 L60,80 Z"/>
-            <!-- 阻尼器区域高亮 -->
-            <rect class="damper-zone" x="55" y="70" width="90" height="50" rx="5"/>
-            <!-- 楼层线 -->
-            <line x1="60" y1="150" x2="140" y2="150" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
-            <line x1="60" y1="250" x2="140" y2="250" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
-            <line x1="60" y1="350" x2="140" y2="350" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
-            <line x1="60" y1="450" x2="140" y2="450" stroke="rgba(140,180,230,0.2)" stroke-width="1"/>
-          </svg>
-          <div class="floor-marker floor-126">126F</div>
-          <div class="floor-marker floor-125">125F · 阻尼器</div>
-          <div class="floor-marker floor-100">100F</div>
-          <div class="floor-marker floor-50">50F</div>
-          
-          <div class="damper-detail">
-            <h4>🎯 阻尼器技术参数</h4>
-            <div class="damper-specs">
-              <div class="spec-row">
-                <span class="spec-label">质量块重量</span>
-                <span class="spec-value">1000吨</span>
-              </div>
-              <div class="spec-row">
-                <span class="spec-label">摆长</span>
-                <span class="spec-value">约7米</span>
-              </div>
-              <div class="spec-row">
-                <span class="spec-label">摆动幅度</span>
-                <span class="spec-value">±2米</span>
-              </div>
-              <div class="spec-row">
-                <span class="spec-label">减振效果</span>
-                <span class="spec-value">降低40%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="damper-viz">
-          <div class="viz-title">阻尼器实时演示<span>模拟台风作用下的摆动</span></div>
-          
-          <div class="damper-container">
-            <div class="suspension-system">
-              <div class="cable-left"></div>
-              <div class="cable-right"></div>
-              <div class="mass-swing">
-                <div class="mass-body">
-                  <div class="mass-decoration"></div>
-                  <div class="mass-weight">1000t</div>
-                  <div class="connection-point"></div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="damper-unit">
-              <div class="damper-piston"></div>
-              <div class="damper-cylinder">
-                <div class="damper-fluid"></div>
-              </div>
-              <div class="damper-piston"></div>
-            </div>
-          </div>
-          
-          <div class="status-panel">
-            <div class="status-item">
-              <div class="status-indicator"></div>
-              <div class="status-text">系统状态: <strong>正常运行</strong></div>
-            </div>
-            <div class="status-item">
-              <div class="status-text">当前风速: <strong>12级台风</strong></div>
-            </div>
-            <div class="status-item">
-              <div class="status-text">减振效率: <strong>42%</strong></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面4: 阻尼器 -->
-  <section class="page" id="damper">
-    <div class="damper">
-      <h2>世界著名<span>阻尼器</span></h2>
-      <p class="subtitle">全球超高层建筑的减震守护者</p>
-      
-      <div class="damper-grid">
-        <div class="damper-card featured">
-          <div class="card-icon">🏢</div>
-          <div class="card-title">上海中心大厦</div>
-          <div class="card-desc">世界最大的电涡流阻尼器，质量达1000吨，安装于125-126层之间，采用创新的电涡流阻尼技术。</div>
-          <div class="card-specs">
-            <div class="spec-item">
-              <span>质量</span>
-              <span style="color:var(--gold);font-weight:700">1000吨</span>
-            </div>
-            <div class="spec-item">
-              <span>类型</span>
-              <span>电涡流阻尼器</span>
-            </div>
-            <div class="spec-item">
-              <span>减振效果</span>
-              <span>40%</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="damper-card">
-          <div class="card-icon">🌆</div>
-          <div class="card-title">台北101大厦</div>
-          <div class="card-desc">世界首个向公众开放的巨型阻尼器，重达660吨，悬挂于87-92层之间，已成为台北地标景点。</div>
-          <div class="card-specs">
-            <div class="spec-item">
-              <span>质量</span>
-              <span style="color:var(--cyan);font-weight:700">660吨</span>
-            </div>
-            <div class="spec-item">
-              <span>类型</span>
-              <span>摆式阻尼器</span>
-            </div>
-            <div class="spec-item">
-              <span>直径</span>
-              <span>5.5米</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="damper-card">
-          <div class="card-icon">🗼</div>
-          <div class="card-title">深圳平安金融中心</div>
-          <div class="card-desc">采用双阻尼器系统，总质量达1000吨，针对深圳地区台风频发的气候特点专门设计。</div>
-          <div class="card-specs">
-            <div class="spec-item">
-              <span>质量</span>
-              <span style="color:var(--cyan);font-weight:700">500吨×2</span>
-            </div>
-            <div class="spec-item">
-              <span>类型</span>
-              <span>液压阻尼器</span>
-            </div>
-            <div class="spec-item">
-              <span>安装高度</span>
-              <span>114层</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面5: 应用 -->
-  <section class="page" id="application">
-    <div class="application">
-      <h2>阻尼器<span>应用领域</span></h2>
-      
-      <div class="app-showcase">
-        <div class="app-card">
-          <div class="app-visual bridge-visual">
-            <div class="bridge-tower"></div>
-            <div class="bridge-deck"></div>
-            <div class="bridge-cables"></div>
-          </div>
-          <div class="app-content">
-            <h3>大跨度桥梁</h3>
-            <p>应用于悬索桥、斜拉桥等大型桥梁结构，抑制风致振动和涡激振动，防止桥梁发生颤振失稳。</p>
-            <div class="app-meta">
-              <span class="meta-tag">悬索桥</span>
-              <span class="meta-tag">斜拉桥</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="app-card">
-          <div class="app-visual tower-visual">
-            <div class="tower-building"></div>
-            <div class="tower-damper"></div>
-          </div>
-          <div class="app-content">
-            <h3>超高层建筑</h3>
-            <p>300米以上的摩天大楼标配，有效降低风荷载引起的舒适度问题，减少结构疲劳损伤。</p>
-            <div class="app-meta">
-              <span class="meta-tag">摩天大楼</span>
-              <span class="meta-tag">地标建筑</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="app-card">
-          <div class="app-visual chimney-visual">
-            <div class="chimney-stack"></div>
-            <div class="chimney-ring"></div>
-          </div>
-          <div class="app-content">
-            <h3>工业设施</h3>
-            <p>用于发电厂烟囱、冷却塔、电视塔等高耸结构，抵御强风和地震作用，保障工业安全。</p>
-            <div class="app-meta">
-              <span class="meta-tag">烟囱</span>
-              <span class="meta-tag">冷却塔</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面6: 优势 -->
-  <section class="page" id="advantage">
-    <div class="advantage">
-      <h2>采用阻尼器的<span>技术优势</span></h2>
-      
-      <div class="compare-container">
-        <div class="compare-card traditional">
-          <div class="compare-header">
-            <h3>传统结构加强方案</h3>
-            <div class="tag">高成本 · 低效率</div>
-          </div>
-          <div class="compare-list">
-            <div class="compare-item">
-              <div class="compare-icon">⚠️</div>
-              <div class="compare-text">
-                <h4>材料成本高昂</h4>
-                <p>需增加30-50%结构材料用量</p>
-              </div>
-            </div>
-            <div class="compare-item">
-              <div class="compare-icon">⚠️</div>
-              <div class="compare-text">
-                <h4>建筑自重增加</h4>
-                <p>导致地基和基础成本上升</p>
-              </div>
-            </div>
-            <div class="compare-item">
-              <div class="compare-icon">⚠️</div>
-              <div class="compare-text">
-                <h4>空间利用率低</h4>
-                <p>厚重的结构构件占用使用面积</p>
-              </div>
-            </div>
-            <div class="compare-item">
-              <div class="compare-icon">⚠️</div>
-              <div class="compare-text">
-                <h4>舒适度难以保证</h4>
-                <p>人体仍能感知明显晃动</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="compare-vs">VS</div>
-        
-        <div class="compare-card optimized">
-          <div class="compare-header">
-            <h3>阻尼器减震方案</h3>
-            <div class="tag">高效 · 经济 · 智能</div>
-          </div>
-          <div class="compare-list">
-            <div class="compare-item">
-              <div class="compare-icon">✓</div>
-              <div class="compare-text">
-                <h4>成本降低40%</h4>
-                <p>减少结构材料用量，优化造价</p>
-              </div>
-            </div>
-            <div class="compare-item">
-              <div class="compare-icon">✓</div>
-              <div class="compare-text">
-                <h4>减振效果显著</h4>
-                <p>可降低振动幅度30-50%</p>
-              </div>
-            </div>
-            <div class="compare-item">
-              <div class="compare-icon">✓</div>
-              <div class="compare-text">
-                <h4>提升居住舒适度</h4>
-                <p>加速度降低，人体无感知</p>
-              </div>
-            </div>
-            <div class="compare-item">
-              <div class="compare-icon">✓</div>
-              <div class="compare-text">
-                <h4>全生命周期受益</h4>
-                <p>保护结构，延长建筑寿命</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面7: 数据 -->
-  <section class="page" id="data">
-    <div class="data">
-      <h2>阻尼器<span>性能数据</span></h2>
-      <p class="subtitle">上海中心大厦阻尼器实际运行监测数据</p>
-      
-      <div class="data-dashboard">
-        <div class="data-panel">
-          <div class="panel-header">
-            <div class="panel-title">不同风级下减振效果</div>
-            <div class="panel-badge">实测数据</div>
-          </div>
-          <div class="chart-container">
-            <div class="bar-chart">
-              <div class="bar-item">
-                <div class="bar" data-value="25%"></div>
-                <div class="bar-label">6级风</div>
-              </div>
-              <div class="bar-item">
-                <div class="bar" data-value="35%"></div>
-                <div class="bar-label">8级风</div>
-              </div>
-              <div class="bar-item">
-                <div class="bar" data-value="42%"></div>
-                <div class="bar-label">10级风</div>
-              </div>
-              <div class="bar-item">
-                <div class="bar" data-value="48%"></div>
-                <div class="bar-label">12级风</div>
-              </div>
-              <div class="bar-item">
-                <div class="bar" data-value="55%"></div>
-                <div class="bar-label">14级风</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="data-panel">
-          <div class="panel-header">
-            <div class="panel-title">实时振动监测</div>
-            <div class="panel-badge">实时</div>
-          </div>
-          <div class="chart-container">
-            <div class="line-chart">
-              <svg class="line-svg" viewBox="0 0 400 200" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" style="stop-color:rgba(255,215,107,0.3)"/>
-                    <stop offset="100%" style="stop-color:rgba(255,215,107,0)"/>
-                  </linearGradient>
-                </defs>
-                <path class="line-area" d="M0,150 Q50,140 100,130 T200,100 T300,80 T400,60 L400,200 L0,200 Z"/>
-                <path class="line-path" d="M0,150 Q50,140 100,130 T200,100 T300,80 T400,60"/>
-              </svg>
-            </div>
-          </div>
-          <div class="data-metrics">
-            <div class="metric-card">
-              <div class="metric-value">0.8<span style="font-size:16px">m/s²</span></div>
-              <div class="metric-label">当前加速度</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-value">±0.3<span style="font-size:16px">m</span></div>
-              <div class="metric-label">阻尼器摆幅</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页面8: 展望 -->
-  <section class="page" id="future">
-    <div class="future">
-      <h2>阻尼器技术<span>未来展望</span></h2>
-      
-      <div class="timeline">
-        <div class="timeline-line"></div>
-        
-        <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <div class="timeline-year">2020-2025</div>
-            <div class="timeline-title">智能化升级</div>
-            <div class="timeline-desc">引入AI算法实时优化阻尼参数，根据风速、地震波自动调整最佳工作状态</div>
-          </div>
-        </div>
-        
-        <div class="timeline-item active">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <div class="timeline-year">2025-2030</div>
-            <div class="timeline-title">多物理场耦合</div>
-            <div class="timeline-desc">整合风工程、地震工程、结构健康监测，实现多灾害协同防护</div>
-          </div>
-        </div>
-        
-        <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <div class="timeline-year">2030-2035</div>
-            <div class="timeline-title">新材料应用</div>
-            <div class="timeline-desc">磁流变材料、形状记忆合金等智能材料应用于下一代阻尼系统</div>
-          </div>
-        </div>
-        
-        <div class="timeline-item">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <div class="timeline-year">2035+</div>
-            <div class="timeline-title">城市级防护网络</div>
-            <div class="timeline-desc">建筑群协同减震系统，构建智慧城市地震/风灾防护网络</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 页脚 -->
-  <footer class="footer">
-    <span>🔧 调谐质量阻尼器科普展示</span>
-    <span>📊 数据来源: 上海中心大厦、台北101等公开资料</span>
-    <span>⚡ 技术原理: 结构动力学 · 振动控制</span>
-  </footer>
+  <div class="vignette"></div>
 </div>
 
 <script>
-// 页面切换功能
-function showPage(pageId){
-  // 隐藏所有页面
-  document.querySelectorAll('.page').forEach(page=>{
-    page.classList.remove('active');
-  });
-  // 显示目标页面
-  document.getElementById(pageId).classList.add('active');
-  // 更新导航按钮状态
-  document.querySelectorAll('.nav-btn').forEach(btn=>{
-    btn.classList.toggle('active', btn.dataset.page===pageId);
-  });
-}
+(function(){
+  /* ============================================================
+     FIT 1920×1080 → window
+     ============================================================ */
+  function fit(){
+    const stage = document.querySelector('.stage');
+    const sw = window.innerWidth, sh = window.innerHeight;
+    const scale = Math.min(sw/1920, sh/1080);
+    stage.style.transform = `translate(-50%,-50%) scale(${scale})`;
+  }
+  fit(); window.addEventListener('resize', fit);
 
-// 导航按钮点击事件
-document.querySelectorAll('.nav-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    showPage(btn.dataset.page);
-  });
-});
+  /* ============================================================
+     PAPER GRAIN canvas overlay
+     ============================================================ */
+  (function paperGrain(){
+    const c = document.getElementById('grain');
+    c.width = 1920; c.height = 1080;
+    const ctx = c.getContext('2d');
+    const id = ctx.createImageData(1920, 1080);
+    const d = id.data;
+    for(let i=0;i<d.length;i+=4){
+      const v = 110 + Math.random()*145;
+      d[i] = v; d[i+1] = v; d[i+2] = v;
+      d[i+3] = Math.random() * 22;  // very low alpha
+    }
+    ctx.putImageData(id,0,0);
+  })();
 
-// 键盘导航
-document.addEventListener('keydown',(e)=>{
-  const pages=['home','theory','shanghai','damper','application','advantage','data','future'];
-  const current=document.querySelector('.page.active').id;
-  const idx=pages.indexOf(current);
-  if(e.key==='ArrowRight' && idx<pages.length-1) showPage(pages[idx+1]);
-  if(e.key==='ArrowLeft' && idx>0) showPage(pages[idx-1]);
-});
+  /* ============================================================
+     NAVIGATION
+     ============================================================ */
+  const total = 5;
+  let cur = 0, busy = false;
+  const vp = document.getElementById('viewport');
+  const scenes = document.querySelectorAll('.scene');
+  const items = document.querySelectorAll('.nav-item');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  function go(idx){
+    if(busy || idx===cur) return;
+    idx = Math.max(0, Math.min(total-1, idx));
+    busy = true;
+    vp.style.transform = `translateX(${-1920*idx}px)`;
+    scenes.forEach((s,i)=> s.classList.toggle('active', i===idx));
+    items.forEach((it,i)=> it.classList.toggle('active', i===idx));
+    cur = idx;
+    setTimeout(()=>{busy=false}, 1400);
+  }
+  items.forEach(it=>it.addEventListener('click', ()=>go(+it.dataset.go)));
+  prevBtn.addEventListener('click', ()=>go(cur-1));
+  nextBtn.addEventListener('click', ()=>go(cur+1));
+
+  window.addEventListener('keydown', e=>{
+    if(e.key==='ArrowRight' || e.key===' ') go(cur+1);
+    else if(e.key==='ArrowLeft') go(cur-1);
+    else if(/^[1-5]$/.test(e.key)) go(+e.key - 1);
+  });
+
+  let wheelLock = false;
+  window.addEventListener('wheel', e=>{
+    if(wheelLock) return;
+    wheelLock = true;
+    setTimeout(()=>wheelLock=false, 1200);
+    if(e.deltaY>0 || e.deltaX>0) go(cur+1);
+    else if(e.deltaY<0 || e.deltaX<0) go(cur-1);
+  }, {passive:true});
+
+  /* touch swipe */
+  let tx=0;
+  window.addEventListener('touchstart', e=>{ tx = e.touches[0].clientX; });
+  window.addEventListener('touchend', e=>{
+    const dx = e.changedTouches[0].clientX - tx;
+    if(Math.abs(dx)>60){ go(dx<0 ? cur+1 : cur-1); }
+  });
+})();
 </script>
 </body>
 </html>
